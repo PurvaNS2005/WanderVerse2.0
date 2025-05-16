@@ -1,0 +1,316 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Profile - WanderVerse{% endblock %}
+
+{% block style %}
+<style>
+    .profile-header {
+        background: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+    }
+    .profile-card {
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    .stat-card {
+        transition: transform 0.2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-base-200">
+    <!-- Profile Header -->
+    <div class="profile-header text-white py-16">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center gap-8">
+                <!-- Profile Picture -->
+                <div class="relative">
+                    <img id="profile-picture" src="{{ user_data.photoURL|default:'https://ui-avatars.com/api/?name='|add:user_data.displayName|add:'&background=random' }}" 
+                         alt="Profile Picture" 
+                         class="w-32 h-32 rounded-full border-4 border-white shadow-lg">
+                    <button onclick="document.getElementById('profile-picture-input').click()" 
+                            class="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg hover:bg-primary-focus transition-colors"
+                            title="Change profile picture"
+                            aria-label="Change profile picture">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                        </svg>
+                    </button>
+                    <input type="file" id="profile-picture-input" class="hidden" accept="image/*" 
+                           aria-label="Upload profile picture">
+                </div>
+                
+                <!-- Profile Info -->
+                <div class="flex-1 text-center md:text-left">
+                    <h1 class="text-3xl font-bold mb-2">{{ user_data.displayName }}</h1>
+                    <p class="text-lg opacity-90">{{ user_data.email }}</p>
+                    <div class="mt-4 flex flex-wrap gap-2 justify-center md:justify-start">
+                        <span class="badge badge-primary">Member since {{ user_data.createdAt|date:"F Y" }}</span>
+                        {% if user_data.isPremium %}
+                        <span class="badge badge-secondary">Premium</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Stats Section -->
+            <div class="md:col-span-2 space-y-6">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div class="stat-card bg-base-100 rounded-lg shadow-lg p-6">
+                        <div class="stat-title">Trips Planned</div>
+                        <div class="stat-value text-primary">{{ user_data.tripsPlanned|default:"0" }}</div>
+                        <div class="stat-desc">Total trips created</div>
+                    </div>
+                    <div class="stat-card bg-base-100 rounded-lg shadow-lg p-6">
+                        <div class="stat-title">Destinations</div>
+                        <div class="stat-value text-secondary">{{ user_data.destinationsVisited|default:"0" }}</div>
+                        <div class="stat-desc">Places explored</div>
+                    </div>
+                    <div class="stat-card bg-base-100 rounded-lg shadow-lg p-6">
+                        <div class="stat-title">Reviews</div>
+                        <div class="stat-value text-accent">{{ user_data.reviewsCount|default:"0" }}</div>
+                        <div class="stat-desc">Places reviewed</div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-base-100 rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-bold mb-4">Recent Activity</h2>
+                    <div class="space-y-4">
+                        {% for activity in recent_activities %}
+                        <div class="flex items-start gap-4 p-4 hover:bg-base-200 rounded-lg transition-colors">
+                            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div class="flex-1">
+                                <p class="font-medium">{{ activity.title }}</p>
+                                <p class="text-sm text-base-content/70">{{ activity.description }}</p>
+                                <p class="text-xs text-base-content/50 mt-1">{{ activity.timestamp|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-8 text-base-content/70">
+                            <p>No recent activity</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div class="space-y-6">
+                <!-- Profile Settings -->
+                <div class="bg-base-100 rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-bold mb-4">Profile Settings</h2>
+                    <form id="profile-form" class="space-y-4">
+                        <div class="form-control">
+                            <label class="label" for="display-name">
+                                <span class="label-text">Display Name</span>
+                            </label>
+                            <input type="text" id="display-name" name="displayName" 
+                                   value="{{ user_data.displayName }}" 
+                                   class="input input-bordered" required>
+                        </div>
+                        <div class="form-control">
+                            <label class="label" for="email">
+                                <span class="label-text">Email</span>
+                            </label>
+                            <input type="email" id="email" value="{{ user_data.email }}" 
+                                   class="input input-bordered" disabled>
+                        </div>
+                        <div class="form-control">
+                            <label class="label" for="bio">
+                                <span class="label-text">Bio</span>
+                            </label>
+                            <textarea id="bio" name="bio" class="textarea textarea-bordered h-24" 
+                                      placeholder="Tell us about yourself">{{ user_data.bio|default:"" }}</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-full">Save Changes</button>
+                    </form>
+                </div>
+
+                <!-- Preferences -->
+                <div class="bg-base-100 rounded-lg shadow-lg p-6">
+                    <h2 class="text-xl font-bold mb-4">Preferences</h2>
+                    <div class="space-y-4">
+                        <div class="form-control">
+                            <label class="label cursor-pointer" for="email-notifications">
+                                <span class="label-text">Email Notifications</span>
+                                <input type="checkbox" id="email-notifications" class="toggle toggle-primary" 
+                                       {% if user_data.emailNotifications %}checked{% endif %}>
+                            </label>
+                        </div>
+                        <div class="form-control">
+                            <label class="label cursor-pointer" for="dark-mode">
+                                <span class="label-text">Dark Mode</span>
+                                <input type="checkbox" id="dark-mode" class="toggle toggle-primary" 
+                                       {% if user_data.darkMode %}checked{% endif %}>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Profile picture upload
+    const profilePictureInput = document.getElementById('profile-picture-input');
+    const profilePicture = document.getElementById('profile-picture');
+    
+    profilePictureInput.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size should be less than 5MB');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('profile_picture', file);
+        
+        try {
+            // Show loading state
+            profilePicture.style.opacity = '0.5';
+            
+            const response = await fetch('/accounts/update-profile-picture/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCsrfToken()
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                // Update profile picture
+                profilePicture.src = data.photoURL;
+                
+                // Show success message
+                const toast = document.createElement('div');
+                toast.className = 'toast toast-top toast-end z-50';
+                toast.innerHTML = `
+                    <div class="alert alert-success">
+                        <span>${data.message}</span>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                
+                // Remove toast after 3 seconds
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            } else {
+                throw new Error(data.message || 'Failed to update profile picture');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            
+            // Show error message
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-top toast-end z-50';
+            toast.innerHTML = `
+                <div class="alert alert-error">
+                    <span>${error.message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        } finally {
+            // Reset loading state
+            profilePicture.style.opacity = '1';
+            // Clear the input
+            profilePictureInput.value = '';
+        }
+    });
+    
+    // Profile form submission
+    const profileForm = document.getElementById('profile-form');
+    profileForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(profileForm);
+        const data = Object.fromEntries(formData.entries());
+        
+        try {
+            const response = await fetch('/accounts/update-profile/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                // Show success message
+                const toast = document.createElement('div');
+                toast.className = 'toast toast-top toast-end z-50';
+                toast.innerHTML = `
+                    <div class="alert alert-success">
+                        <span>${result.message || 'Profile updated successfully!'}</span>
+                    </div>
+                `;
+                document.body.appendChild(toast);
+                
+                // Remove toast after 3 seconds
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            } else {
+                throw new Error(result.message || 'Failed to update profile');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            
+            // Show error message
+            const toast = document.createElement('div');
+            toast.className = 'toast toast-top toast-end z-50';
+            toast.innerHTML = `
+                <div class="alert alert-error">
+                    <span>${error.message}</span>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+    });
+});
+</script>
+{% endblock %} 

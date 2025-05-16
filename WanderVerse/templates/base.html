@@ -1,0 +1,167 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en" class="dark:bg-gray-900" data-theme="winter">
+
+<head>
+    <!-- Meta tags-->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Give a small description in 3-4 sentences about the website -->
+    <meta name="description"
+          content="WanderVerse is a smart travel itinerary planner. It helps you create personalized travel plans with AI assistance. Discover new destinations and plan your perfect trip.">
+    <!-- A small abstract idea about the website -->
+    <meta name="abstract" content="Smart Travel Itinerary Planner">
+    <!-- Language for the website -->
+    <meta name="language" content="English">
+
+    <!-- Web Author for the image -->
+    <meta name="web_author" content="IEEE NITK">
+    <meta name="author" content="IEEE NITK">
+
+    <!-- Website Title -->
+    <title>{% block title %}WanderVerse{% endblock %}</title>
+    <link rel="icon" href="{% static 'img/favicon.ico' %}" type="image/x-icon">
+
+    <!-- Linked Sheets needed -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu&display=swap" rel="stylesheet">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@48,400,0,0"/>
+
+    <!-- Linked Scripts needed -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"
+            integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <!-- Firebase Configuration -->
+    <script>
+        window.FIREBASE_CONFIG = {
+            apiKey: "{{ FIREBASE_CONFIG.apiKey }}",
+            authDomain: "{{ FIREBASE_CONFIG.authDomain }}",
+            projectId: "{{ FIREBASE_CONFIG.projectId }}",
+            storageBucket: "{{ FIREBASE_CONFIG.storageBucket }}",
+            messagingSenderId: "{{ FIREBASE_CONFIG.messagingSenderId }}",
+            appId: "{{ FIREBASE_CONFIG.appId }}"
+        };
+    </script>
+
+    <!-- First get CSRF token, then load Firebase config -->
+    <script>
+        // Fetch CSRF token before any Firebase operations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ensure we have a CSRF token right away
+            fetch('/accounts/get-csrf-token/', {
+                method: 'GET',
+                credentials: 'same-origin' // Important for cookies
+            }).then(function(response) {
+                if (response.ok) {
+                    console.log("CSRF token fetched successfully");
+                    // Force a short delay to ensure cookie is set
+                    return new Promise(resolve => setTimeout(resolve, 100));
+                } else {
+                    console.error("Error fetching CSRF token:", response.status);
+                }
+            }).catch(function(error) {
+                console.error("Error fetching CSRF token:", error);
+            });
+        });
+    </script>
+
+    <!-- Load Firebase Config Script -->
+    <script src="{% static 'js/firebase-config.js' %}"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/navbar.css' %}"/>
+
+    {% block style %}
+    {% endblock %}
+    
+    {% if USE_TAILWIND_CDN_LINK %}
+        <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+        <script>
+            tailwind.config = {
+                darkMode: 'class',
+                daisyui: {
+                    themes: ["winter", "night"],
+                    darkTheme: "night",
+                },
+                theme: {
+                    extend: {
+                        colors: {
+                            // Add any custom colors here
+                        }
+                    }
+                }
+            }
+        </script>
+    {% endif %}
+    <link rel="stylesheet" href="{% static 'css/output.css' %}"/>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Ubuntu', sans-serif;
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+{% include "components/navbar.html" %}
+
+{% if messages %}
+    <div class="toast toast-start z-40">
+    {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} message-fade-away">
+                <span>{{ message }}</span>
+            </div>
+        {% endfor %}
+        </div>
+{% endif %}
+
+{% block content %}
+{% endblock %}
+
+{% include "components/dark_mode_toggle.html" %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const fadeDivs = document.querySelectorAll(".message-fade-away");
+        fadeDivs.forEach(function (fadeDiv) {
+            setTimeout(function () {
+                fadeOut(fadeDiv);
+            }, 5000);
+        });
+    });
+
+    function fadeOut(element) {
+        let opacity = 1;
+        const intervalDuration = 50;
+        const intervalStep = 0.05;
+
+        let fadeInterval = setInterval(function () {
+            if (opacity > 0) {
+                opacity -= intervalStep;
+                element.style.opacity = opacity;
+            } else {
+                clearInterval(fadeInterval);
+                element.parentNode.removeChild(element);
+            }
+        }, intervalDuration);
+    }
+</script>
+
+{% block script %}
+{% endblock %}
+</body>
+
+</html>

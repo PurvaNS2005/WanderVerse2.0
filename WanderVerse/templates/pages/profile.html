@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+Profile - WanderVerse
+{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/profile.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-base-200 py-8">
+  <div class="container mx-auto px-4">
+    <!-- Profile Header -->
+    <div class="bg-base-100 rounded-lg shadow-lg p-6 mb-8">
+      <div class="flex flex-col md:flex-row items-center gap-6">
+        <div class="avatar">
+          <div class="w-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+            <img id="profile-avatar" src="" alt="Profile Picture" />
+          </div>
+        </div>
+        <div class="flex-1 text-center md:text-left">
+          <h1 id="profile-name" class="text-3xl font-bold mb-2"></h1>
+          <p id="profile-email" class="text-base-content/70"></p>
+          <div class="mt-4 flex gap-4 justify-center md:justify-start">
+            <div class="stat bg-base-200 rounded-lg">
+              <div class="stat-title">Trips</div>
+              <div id="trip-count" class="stat-value">0</div>
+            </div>
+            <div class="stat bg-base-200 rounded-lg">
+              <div class="stat-title">Countries</div>
+              <div id="country-count" class="stat-value">0</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trip History -->
+    <div class="bg-base-100 rounded-lg shadow-lg p-6">
+      <h2 class="text-2xl font-bold mb-6">My Trips</h2>
+      <div id="trip-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Trip cards will be dynamically added here -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Update profile information when user is authenticated
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+      document.getElementById('profile-avatar').src = user.photoURL;
+      document.getElementById('profile-name').textContent = user.displayName;
+      document.getElementById('profile-email').textContent = user.email;
+      
+      // Fetch user's trips from Firestore
+      firebase.firestore().collection('trips')
+        .where('userId', '==', user.uid)
+        .get()
+        .then((snapshot) => {
+          const tripList = document.getElementById('trip-list');
+          const tripCount = document.getElementById('trip-count');
+          const countryCount = document.getElementById('country-count');
+          const countries = new Set();
+          
+          tripCount.textContent = snapshot.size;
+          
+          snapshot.forEach((doc) => {
+            const trip = doc.data();
+            countries.add(trip.destination);
+            
+            const tripCard = document.createElement('div');
+            tripCard.className = 'card bg-base-200 shadow-xl';
+            tripCard.innerHTML = `
+              <div class="card-body">
+                <h3 class="card-title">${trip.title}</h3>
+                <p class="text-base-content/70">${trip.destination}</p>
+                <p class="text-sm">${new Date(trip.startDate.toDate()).toLocaleDateString()} - ${new Date(trip.endDate.toDate()).toLocaleDateString()}</p>
+                <div class="card-actions justify-end mt-4">
+                  <button class="btn btn-primary btn-sm">View Details</button>
+                </div>
+              </div>
+            `;
+            tripList.appendChild(tripCard);
+          });
+          
+          countryCount.textContent = countries.size;
+        });
+    } else {
+      window.location.href = '/';
+    }
+  });
+</script>
+{% endblock %} 

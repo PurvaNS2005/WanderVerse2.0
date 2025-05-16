@@ -1,0 +1,36 @@
+FROM python:3.11.1-slim-buster
+
+RUN mkdir /corpus
+WORKDIR /corpus
+
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
+# Install required packages including newer SQLite
+RUN apt-get update && \
+    apt-get install -y gcc libpq-dev libmagic1 && \
+    apt-get install -y wget build-essential && \
+    wget https://www.sqlite.org/2023/sqlite-autoconf-3420000.tar.gz && \
+    tar xvfz sqlite-autoconf-3420000.tar.gz && \
+    cd sqlite-autoconf-3420000 && \
+    ./configure && \
+    make && \
+    make install && \
+    cd .. && \
+    rm -rf sqlite-autoconf-3420000* && \
+    apt-get remove -y wget build-essential && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+
+# Install pip packages with retries and longer timeout
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir --timeout 100 --retries 3 -r requirements.txt
+
+# Create a script to run migrations
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["docker-entrypoint.sh"]
