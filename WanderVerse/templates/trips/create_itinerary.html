@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Map Section -->
+        <div class="col-md-8">
+            <div id="map" style="height: 100vh;"></div>
+        </div>
+        
+        <!-- Itinerary Creation Section -->
+        <div class="col-md-4">
+            <div class="itinerary-container">
+                <h2 class="mb-4">Create Itinerary for {{ city_name }}</h2>
+                
+                <!-- Date Range -->
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h3 class="mb-0">Trip Dates</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">
+                            <i class="fas fa-calendar"></i> 
+                            {{ check_in_date }} to {{ check_out_date }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Tourist Spots -->
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="mb-0">Tourist Spots</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for poi in pois %}
+                            <div class="list-group-item poi-item" 
+                                 data-lat="{{ poi.properties.lat }}" 
+                                 data-lon="{{ poi.properties.lon }}"
+                                 data-name="{{ poi.properties.name }}">
+                                <h5 class="mb-1">{{ poi.properties.name }}</h5>
+                                <p class="mb-1">{{ poi.properties.categories|join:", " }}</p>
+                                <small class="text-muted">{{ poi.properties.address }}</small>
+                                <button class="btn btn-sm btn-outline-primary float-end add-to-itinerary">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hotels -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">Hotels</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for hotel in hotels %}
+                            <div class="list-group-item hotel-item"
+                                 data-lat="{{ hotel.lat }}"
+                                 data-lon="{{ hotel.lon }}"
+                                 data-name="{{ hotel.name }}">
+                                <h5 class="mb-1">{{ hotel.name }}</h5>
+                                <p class="mb-1">Rating: {{ hotel.rating }} ⭐</p>
+                                <p class="mb-1">Price: {{ hotel.price }}</p>
+                                <small class="text-muted">{{ hotel.address }}</small>
+                                <button class="btn btn-sm btn-outline-primary float-end add-to-itinerary">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="d-grid gap-2">
+                    <button id="saveItineraryBtn" class="btn btn-success btn-lg">
+                        <i class="fas fa-save"></i> Save Itinerary
+                    </button>
+                    <a href="{% url 'show_trip_results' city_name=city_name %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Results
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.itinerary-container {
+    height: 100vh;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.poi-item, .hotel-item {
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.poi-item:hover, .hotel-item:hover {
+    background-color: #f8f9fa;
+}
+
+.add-to-itinerary {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.poi-item:hover .add-to-itinerary,
+.hotel-item:hover .add-to-itinerary {
+    opacity: 1;
+}
+</style>
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    // Initialize map
+    const map = L.map('map').setView([
+        parseFloat('{{ city_info.lat }}'),
+        parseFloat('{{ city_info.lon }}')
+    ], 13);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Add markers for POIs
+    {% for poi in pois %}
+    const poiMarker = L.marker([
+        parseFloat('{{ poi.properties.lat }}'),
+        parseFloat('{{ poi.properties.lon }}')
+    ], {
+        icon: L.divIcon({
+            className: 'custom-div-icon',
+            html: '<div style="background-color: #28a745; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white;"></div>',
+            iconSize: [14, 14],
+            iconAnchor: [7, 7]
+        })
+    }).addTo(map);
+    poiMarker.bindPopup(`<b>${'{{ poi.properties.name|escapejs }}'}</b><br>${'{{ poi.properties.categories|join:", "|escapejs }}'}`);
+    {% endfor %}
+
+    // Add markers for hotels
+    {% for hotel in hotels %}
+    const hotelMarker = L.marker([
+        parseFloat('{{ hotel.lat }}'),
+        parseFloat('{{ hotel.lon }}')
+    ], {
+        icon: L.divIcon({
+            className: 'custom-div-icon',
+            html: '<div style="background-color: #17a2b8; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white;"></div>',
+            iconSize: [14, 14],
+            iconAnchor: [7, 7]
+        })
+    }).addTo(map);
+    hotelMarker.bindPopup(`<b>${'{{ hotel.name|escapejs }}'}</b><br>Rating: ${'{{ hotel.rating }}'} ⭐<br>Price: ${'{{ hotel.price|escapejs }}'}`);
+    {% endfor %}
+
+    // Handle adding items to itinerary
+    document.querySelectorAll('.add-to-itinerary').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const item = this.closest('.poi-item, .hotel-item');
+            const name = item.dataset.name;
+            const lat = item.dataset.lat;
+            const lon = item.dataset.lon;
+            
+            // TODO: Implement adding to itinerary
+            console.log('Adding to itinerary:', { name, lat, lon });
+        });
+    });
+
+    // Handle saving itinerary
+    document.getElementById('saveItineraryBtn').addEventListener('click', function() {
+        // TODO: Implement saving itinerary
+        console.log('Saving itinerary...');
+    });
+</script>
+{% endblock %}
+{% endblock %} 

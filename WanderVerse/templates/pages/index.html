@@ -54,7 +54,10 @@ WanderVerse - Smart Travel Itinerary Planner
               <label class="label invisible">
                 <span class="label-text">Search</span>
               </label>
-              <button type="submit" class="btn btn-primary">Search</button>
+              <div class="flex gap-2">
+                <button type="submit" class="btn btn-primary flex-1">Search</button>
+                <a href="{% url 'create_trip' %}" class="btn btn-secondary flex-1">Make Itinerary</a>
+              </div>
             </div>
           </form>
         </div>
