@@ -250,17 +250,32 @@
     const startDateInput = document.getElementById('{{ form.start_date.id_for_label }}');
     if (startDateInput) {
       startDateInput.classList.add('form-input');
-      // No placeholder needed for date inputs as browsers typically handle this
+      // Set min date to today
+      const today = new Date().toISOString().split('T')[0];
+      startDateInput.min = today;
     }
 
     const endDateInput = document.getElementById('{{ form.end_date.id_for_label }}');
     if (endDateInput) {
       endDateInput.classList.add('form-input');
-      // No placeholder needed for date inputs
     }
 
-    // Optional: Focus the first input field on load for better UX
-    // if (cityInput) { cityInput.focus(); }
+    // Add validation for end date
+    if (startDateInput && endDateInput) {
+      startDateInput.addEventListener('change', function() {
+        endDateInput.min = this.value;
+        if (endDateInput.value && endDateInput.value < this.value) {
+          endDateInput.value = this.value;
+        }
+      });
+
+      endDateInput.addEventListener('change', function() {
+        if (this.value < startDateInput.value) {
+          alert('End date must be after start date');
+          this.value = startDateInput.value;
+        }
+      });
+    }
   });
 </script>
 {% endblock %} 

@@ -25,7 +25,7 @@
     </div>
     <div class="custom-modal-footer">
       <button type="button" class="custom-modal-btn custom-modal-btn-cancel" onclick="closeModal()">Cancel</button>
-      <button type="button" class="custom-modal-btn custom-modal-btn-confirm" onclick="confirmAddToItinerary()">Add to Itinerary</button>
+      <button type="button" class="custom-modal-btn custom-modal-btn-confirm">Add to Itinerary</button>
     </div>
   </div>
 </div>
@@ -107,7 +107,7 @@
                     {% endfor %}
                   </div>
                 </div>
-                <button onclick="showModal('poi', {{ forloop.counter0 }})" class="add-to-itinerary-btn">
+                <button class="add-to-itinerary-btn" data-type="poi" data-id="{{ forloop.counter0 }}">
                   Add to Itinerary
                 </button>
               </div>
@@ -148,7 +148,7 @@
                                  <p class="text-sm text-gray-600 mt-2">Address not available.</p>
                             {% endif %}
                           </div>
-                          <button onclick="showModal('hotel', '{{ hotel.hotelId }}')" class="add-to-itinerary-btn">
+                          <button class="add-to-itinerary-btn" data-type="hotel" data-id="{{ hotel.hotelId }}">
                             Add to Itinerary
                           </button>
                         </div>
@@ -197,6 +197,9 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <!-- Sortable.js for drag and drop -->
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script id="pois-data" type="application/json">{{ pois_json }}</script>
+<script id="hotels-data" type="application/json">{{ hotels_json }}</script>
+<script id="itinerary-data" type="application/json">{{ itinerary_json|default:"{}" }}</script>
 
 <script>
 let map;
@@ -218,6 +221,7 @@ function showModal(type, id) {
     dateInput.value = '{{ check_in_date }}';
     timeInput.value = '09:00';
     currentItemToAdd = { type, id };
+    console.log('Item to add:', currentItemToAdd); // Debugging log
     modal.style.display = 'flex'; // Use flex for centering
     document.body.style.overflow = 'hidden';
 }
@@ -245,30 +249,30 @@ function showToast(message, isError = false) {
 // Standard Icons
 const poiIcon = L.icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/4553/4553399.png',
-    iconSize: [45, 45], iconAnchor: [22, 45], popupAnchor: [0, -45]
+    iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -28]
 });
 
 const hotelMapIcon = L.icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/1397/1397898.png',
-    iconSize: [45, 45], iconAnchor: [22, 45], popupAnchor: [0, -45]
+    iconSize: [28, 28], iconAnchor: [14, 28], popupAnchor: [0, -28]
 });
 
 const selectedMarkerIcon = L.icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/1828/1828395.png',
-    iconSize: [60, 60],
-    iconAnchor: [30, 60],
-    popupAnchor: [0, -60],
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -36],
     className: 'selected-location-marker'
 });
 
 // Active (larger) Icons
 const activePoiIcon = L.icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/4553/4553399.png',
-    iconSize: [45, 45], iconAnchor: [22, 45], popupAnchor: [0, -45], className: 'active-map-marker'
+    iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36], className: 'active-map-marker'
 });
 const activeHotelIcon = L.icon({
     iconUrl: 'https://cdn-icons-png.flaticon.com/512/1397/1397898.png',
-    iconSize: [45, 45], iconAnchor: [22, 45], popupAnchor: [0, -45], className: 'active-map-marker'
+    iconSize: [36, 36], iconAnchor: [18, 36], popupAnchor: [0, -36], className: 'active-map-marker'
 });
 
 let selectedMarker = null;
@@ -381,7 +385,29 @@ function initializeItinerary() {
             group: 'itinerary',
             animation: 150,
             ghostClass: 'bg-gray-100',
+            onAdd: function(evt) {
+                // Remove empty message if present
+                const emptyMsg = evt.to.querySelector('.empty-day-message');
+                if (emptyMsg) emptyMsg.remove();
+            },
+            onRemove: function(evt) {
+                // If source day is now empty, add empty message
+                if (evt.from.children.length === 0) {
+                    evt.from.innerHTML = '<div class="empty-day-message">Drag and drop items here to plan your day</div>';
+                }
+            },
             onEnd: function(evt) {
+                // Remove empty message if items exist, add if empty
+                [evt.from, evt.to].forEach(container => {
+                    if (container) {
+                        if (container.children.length === 0) {
+                            container.innerHTML = '<div class="empty-day-message">Drag and drop items here to plan your day</div>';
+                        } else {
+                            const emptyMsg = container.querySelector('.empty-day-message');
+                            if (emptyMsg) emptyMsg.remove();
+                        }
+                    }
+                });
                 updateItineraryOrder();
             }
         });
@@ -395,8 +421,33 @@ function initializeItinerary() {
 }
 
 function openEditDatesModal() {
-    document.getElementById('editStartDate').value = startDate.toISOString().split('T')[0];
-    document.getElementById('editEndDate').value = endDate.toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+    const startDateInput = document.getElementById('editStartDate');
+    const endDateInput = document.getElementById('editEndDate');
+    
+    startDateInput.value = startDate.toISOString().split('T')[0];
+    endDateInput.value = endDate.toISOString().split('T')[0];
+    
+    // Set min date to today for start date
+    startDateInput.min = today;
+    
+    // Add event listeners for date validation
+    startDateInput.addEventListener('change', function() {
+        // Update end date min to be the selected start date
+        endDateInput.min = this.value;
+        // If end date is before new start date, update it
+        if (endDateInput.value < this.value) {
+            endDateInput.value = this.value;
+        }
+    });
+    
+    endDateInput.addEventListener('change', function() {
+        if (this.value < startDateInput.value) {
+            showToast('End date must be after start date', true);
+            this.value = startDateInput.value;
+        }
+    });
+    
     document.getElementById('editDatesModal').style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
@@ -409,10 +460,23 @@ function closeEditDatesModal() {
 function saveEditedDates() {
     const newStart = document.getElementById('editStartDate').value;
     const newEnd = document.getElementById('editEndDate').value;
-    if (!newStart || !newEnd || newStart > newEnd) {
-        showToast('Invalid date range', true);
+    const today = new Date().toISOString().split('T')[0];
+    
+    if (!newStart || !newEnd) {
+        showToast('Please select both start and end dates', true);
         return;
     }
+    
+    if (newStart < today) {
+        showToast('Start date cannot be in the past', true);
+        return;
+    }
+    
+    if (newStart > newEnd) {
+        showToast('End date must be after start date', true);
+        return;
+    }
+    
     startDate = new Date(newStart);
     endDate = new Date(newEnd);
     initializeItinerary();
@@ -421,10 +485,10 @@ function saveEditedDates() {
 }
 
 function confirmAddToItinerary() {
-    console.log('Confirming add to itinerary:', currentItemToAdd);
-    
+    console.log('Confirming add to itinerary:', currentItemToAdd); // Debugging log
     if (!currentItemToAdd) {
         console.error('No item selected for adding to itinerary');
+        showToast('Please select an item to add to the itinerary', true);
         return;
     }
     
@@ -527,7 +591,7 @@ function createItineraryItem(type, id, name, categories, lat, lon, time) {
         // Optionally, re-sort items in the day container
         const dayContainer = div.closest('.itinerary-items');
         if (dayContainer) {
-            const items = Array.from(dayContainer.children);
+            const items = Array.from(dayContainer.children).filter(child => child.classList.contains('itinerary-item'));
             items.sort((a, b) => {
                 const timeA = a.dataset.time || '00:00';
                 const timeB = b.dataset.time || '00:00';
@@ -535,6 +599,10 @@ function createItineraryItem(type, id, name, categories, lat, lon, time) {
             });
             dayContainer.innerHTML = '';
             items.forEach(item => dayContainer.appendChild(item));
+            // If after sorting, no items, add empty message
+            if (items.length === 0) {
+                dayContainer.innerHTML = '<div class="empty-day-message">Drag and drop items here to plan your day</div>';
+            }
         }
     });
     return div;
@@ -543,12 +611,11 @@ function createItineraryItem(type, id, name, categories, lat, lon, time) {
 function removeFromItinerary(button) {
     const itemContainer = button.closest('.itinerary-items');
     button.closest('.itinerary-item').remove();
-    
     // If this was the last item, add back the empty day message
-    if (itemContainer.children.length === 0) {
+    const remainingItems = Array.from(itemContainer.children).filter(child => child.classList.contains('itinerary-item'));
+    if (remainingItems.length === 0) {
         itemContainer.innerHTML = '<div class="empty-day-message">Drag and drop items here to plan your day</div>';
     }
-    
     updateItineraryOrder();
 }
 
@@ -561,7 +628,8 @@ function updateItineraryOrder() {
             id: item.dataset.id,
             name: item.querySelector('h4').textContent,
             lat: item.dataset.lat,
-            lon: item.dataset.lon
+            lon: item.dataset.lon,
+            time: item.dataset.time
         }));
         if (items.length > 0) {
             itinerary[date] = items;
@@ -577,7 +645,7 @@ async function saveItinerary() {
 
     const tripData = {
         userId: firebase.auth().currentUser.uid,
-        city: '{{ city_info.full_name }}',
+        city: '{{ city_name }}',
         startDate: startDate,
         endDate: endDate,
         itinerary: itinerary,
@@ -585,8 +653,18 @@ async function saveItinerary() {
     };
 
     try {
-        await firebase.firestore().collection('trips').add(tripData);
-        alert('Itinerary saved successfully!');
+        const tripId = '{{ trip_id|default:"" }}';
+        const tripsCollection = firebase.firestore().collection('trips');
+
+        if (tripId) {
+            // Update existing trip
+            await tripsCollection.doc(tripId).update(tripData);
+            alert('Itinerary updated successfully!');
+        } else {
+            // Create new trip
+            await tripsCollection.add(tripData);
+            alert('Itinerary saved successfully!');
+        }
     } catch (error) {
         console.error('Error saving itinerary:', error);
         alert('Failed to save itinerary. Please try again.');
@@ -633,59 +711,53 @@ function toggleView(view) {
     }
 }
 
-// Initialize everything when the document is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize modal event listeners
-    const modal = document.getElementById('addToItineraryModal');
-    const closeButton = modal.querySelector('.close-modal');
-    const confirmButton = modal.querySelector('.custom-modal-btn-confirm');
-
-    if (closeButton) {
-        closeButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            closeModal();
-        });
+function loadSavedItineraryFromJson() {
+    const itineraryDataTag = document.getElementById('itinerary-data');
+    if (!itineraryDataTag) return;
+    let savedItinerary = {};
+    try {
+        savedItinerary = JSON.parse(itineraryDataTag.textContent);
+    } catch (e) {
+        console.error("Failed to parse saved itinerary JSON", e);
+        return;
     }
-
-    if (confirmButton) {
-        confirmButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            confirmAddToItinerary();
-        });
-    }
-
-    // Close modal when clicking outside
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            closeModal();
+    // For each date, add items to the correct day
+    Object.entries(savedItinerary).forEach(([date, items]) => {
+        const dayContainer = document.querySelector(`.itinerary-items[data-date="${date}"]`);
+        if (dayContainer) {
+            // Remove empty message
+            const emptyMsg = dayContainer.querySelector('.empty-day-message');
+            if (emptyMsg) emptyMsg.remove();
+            items.forEach(item => {
+                const itemDiv = createItineraryItem(
+                    item.type,
+                    item.id,
+                    item.name,
+                    item.categories || '',
+                    item.lat,
+                    item.lon,
+                    item.time || '09:00'
+                );
+                dayContainer.appendChild(itemDiv);
+            });
         }
     });
+    updateItineraryOrder();
+}
 
-    // Add click event listeners for Add to Itinerary buttons
-    document.querySelectorAll('.add-to-itinerary-btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            const itemContainer = this.closest('.poi-list-item, .hotel-list-item');
-            if (!itemContainer) return;
+// Initialize everything when the document is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Only run the following if city_info is present
+    var cityInfoPresent = '{{ city_info|yesno:"true,false" }}' === 'true';
+    if (!cityInfoPresent) return;
 
-            const type = itemContainer.classList.contains('poi-list-item') ? 'poi' : 'hotel';
-            const id = type === 'poi' 
-                ? itemContainer.id.replace('poi-item-', '')
-                : itemContainer.id.replace('hotel-item-', '');
-
-            showModal(type, id);
-        });
-    });
-
-    // Initialize map
-    {% if city_info %}
     const lat = parseFloat('{{ city_info.lat }}');
     const lon = parseFloat('{{ city_info.lon }}');
 
-    if (isNaN(lat) || isNaN(lon)) {
-        const mapDiv = document.getElementById('map');
-        if(mapDiv) mapDiv.innerHTML = '<p style="padding:20px;text-align:center;">Invalid coordinates. Map cannot be displayed.</p>';
-    } else {
+    const pois = JSON.parse(document.getElementById('pois-data').textContent);
+    const hotelsDataForMap = JSON.parse(document.getElementById('hotels-data').textContent);
+
+    if (!isNaN(lat) && !isNaN(lon)) {
         requestAnimationFrame(() => {
             map = L.map('map', {
                 zoomControl: true,
@@ -694,7 +766,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 maxZoom: 18,
                 minZoom: 2
             }).setView([lat, lon], 13);
-            
+
             // Ensure map container has proper z-index
             const mapContainer = document.querySelector('.leaflet-container');
             if (mapContainer) {
@@ -705,18 +777,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
 
-            // Standard and Active icons are defined globally now
-
-            const pois = {{ pois|safe }};
+            // Add POI markers
             if (pois) {
                 pois.forEach((p, index) => {
-                    if (p.geometry?.coordinates?.length === 2) {
+                    // Filter out any POI that looks like a logout/door marker or has a suspicious name/icon
+                    const suspiciousIcon = p.properties?.icon && (p.properties.icon.includes('logout') || p.properties.icon.includes('door'));
+                    const suspiciousName = p.properties?.name && (p.properties.name.toLowerCase().includes('logout') || p.properties.name.toLowerCase().includes('door'));
+                    if (
+                        p.geometry?.coordinates?.length === 2 &&
+                        typeof p.geometry.coordinates[0] === 'number' &&
+                        typeof p.geometry.coordinates[1] === 'number' &&
+                        isFinite(p.geometry.coordinates[0]) &&
+                        isFinite(p.geometry.coordinates[1]) &&
+                        !suspiciousIcon &&
+                        !suspiciousName
+                    ) {
                         const poiMarkerId = `poi-marker-${index}`;
                         const listItemId = `poi-item-${index}`;
                         const marker = L.marker([p.geometry.coordinates[1], p.geometry.coordinates[0]], { icon: poiIcon })
                             .addTo(map)
                             .bindPopup(`<b>${p.properties.name}</b><br>${p.properties.categories?.join(', ') || 'N/A'}`);
-                        
+
                         marker.on('click', function() {
                             resetActiveMarker(); // Reset any other active marker
                             this.setIcon(activePoiIcon);
@@ -729,16 +810,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
 
-            const hotelsDataForMap = {{ hotels|safe }};
-            if (hotelsDataForMap && map) {
+            // Add hotel markers
+            if (hotelsDataForMap) {
                 hotelsDataForMap.forEach(hotel => {
-                    if (hotel.geoCode && typeof hotel.geoCode.latitude === 'number' && typeof hotel.geoCode.longitude === 'number') {
+                    if (
+                        hotel.geoCode &&
+                        typeof hotel.geoCode.latitude === 'number' &&
+                        typeof hotel.geoCode.longitude === 'number' &&
+                        isFinite(hotel.geoCode.latitude) &&
+                        isFinite(hotel.geoCode.longitude)
+                    ) {
                         const hotelMarkerId = `hotel-marker-${hotel.hotelId}`;
                         const listItemId = `hotel-item-${hotel.hotelId}`;
                         const marker = L.marker([hotel.geoCode.latitude, hotel.geoCode.longitude], { icon: hotelMapIcon })
                             .addTo(map)
                             .bindPopup(`<b>${hotel.name || 'Hotel Name N/A'}</b><br>ID: ${hotel.hotelId || 'N/A'}`);
-                        
+
                         marker.on('click', function() {
                             resetActiveMarker(); // Reset any other active marker
                             this.setIcon(activeHotelIcon);
@@ -750,7 +837,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             }
-            
+
             document.querySelectorAll('.poi-list-item').forEach(item => {
                 item.addEventListener('click', function() {
                     const itemLat = parseFloat(this.dataset.lat);
@@ -770,7 +857,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const itemLon = parseFloat(this.dataset.lon);
                     const markerId = this.dataset.id;
                     if (!isNaN(itemLat) && !isNaN(itemLon)) {
-                        removeHighlight(); 
+                        removeHighlight();
                         this.classList.add('highlighted-item');
                         currentHighlightedItem = this;
                         showSelectedLocation(itemLat, itemLon); // Show red pointer
@@ -788,11 +875,25 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => { if(map) map.invalidateSize(); }, 500);
         });
     }
+
     toggleView('poi');
 
     // Initialize itinerary
     initializeItinerary();
-    {% endif %}
+    loadSavedItineraryFromJson();
+
+    // Attach event listeners for "Add to Itinerary" buttons
+    document.querySelectorAll('.add-to-itinerary-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent parent click
+            const type = this.getAttribute('data-type');
+            const id = this.getAttribute('data-id');
+            showModal(type, id);
+        });
+    });
+
+    // Attach event listener for the confirm button in the modal
+    document.querySelector('#addToItineraryModal .custom-modal-btn-confirm').onclick = confirmAddToItinerary;
 });
 </script>
 
