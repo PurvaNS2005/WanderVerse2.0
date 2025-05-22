@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static '/css/view_itinerary.css' %}">
+
+<div class="itinerary-container">
+    <h2>Trip Itinerary</h2>
+    <div id="itinerary-details">
+        <!-- Itinerary details will be dynamically loaded here -->
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const itinerary = {{ itinerary_json|safe }};
+    const itineraryDetails = document.getElementById('itinerary-details');
+
+    if (Object.keys(itinerary).length === 0) {
+        itineraryDetails.innerHTML = '<p>No itinerary details available.</p>';
+        return;
+    }
+
+    Object.keys(itinerary).sort().forEach(date => {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'itinerary-day';
+
+        const formattedDate = new Date(date).toLocaleDateString('en-US', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        // Sort items by time
+        const sortedItems = itinerary[date].sort((a, b) => {
+            const timeA = a.time || '00:00';
+            const timeB = b.time || '00:00';
+            return timeA.localeCompare(timeB);
+        });
+
+        dayDiv.innerHTML = `
+            <h3 class="day-header">${formattedDate}</h3>
+            <ul class="day-items">
+                ${sortedItems.map(item => `
+                    <li class="itinerary-item">
+                        <span class="item-time">${item.time || '00:00'}</span>
+                        <div class="item-details">
+                            <h4>${item.name}</h4>
+                            <span class="item-type">${item.type === 'poi' ? 'Tourist Spot' : 'Hotel'}</span>
+                        </div>
+                    </li>
+                `).join('')}
+            </ul>
+        `;
+        itineraryDetails.appendChild(dayDiv);
+    });
+});
+</script>
+{% endblock %} 

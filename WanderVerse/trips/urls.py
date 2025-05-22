@@ -11,4 +11,7 @@ urlpatterns = [
     path('show-ai-itinerary/<str:city_name>/', views.show_ai_itinerary, name='show_ai_itinerary'),
     # AJAX endpoint for loading more hotels - REMOVED as Amadeus returns all hotels at once
     # path('ajax/load_more_hotels/<str:city_name>/', views.load_more_hotels_ajax, name='load_more_hotels_ajax'),
+    path('my-trips/', views.my_trips, name='my_trips'),
+    path('modify/<str:trip_id>/', views.modify_trip, name='modify_trip'),
+    path('view_itinerary/<str:trip_id>/', views.view_itinerary, name='view_itinerary'),
 ]

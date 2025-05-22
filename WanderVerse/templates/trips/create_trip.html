@@ -67,8 +67,9 @@
   let map;
   let allPois = [];
   let allHotels = []; // This will store ALL hotels passed from Django
-  let currentlyDisplayedHotelsCount = 0;
-  const HOTELS_TO_DISPLAY_PER_BATCH = 10;
+  // let currentlyDisplayedHotelsCount = 0;
+  // const HOTELS_TO_DISPLAY_PER_BATCH = 10;
+  const tripId = "{{ trip_id|default:'' }}"; // Make sure trip_id is passed from Django context
 
   // Custom icons
   var poiIcon = L.icon({
@@ -115,24 +116,9 @@
       ${contactInfo}
     `;
     hotelListDiv.appendChild(hotelElement);
-    addHotelMarker(h); 
+
   }
 
-  function displayNextBatchOfHotels() {
-    const loadMoreBtn = document.getElementById('load-more-hotels-btn');
-    const batchEndIndex = Math.min(currentlyDisplayedHotelsCount + HOTELS_TO_DISPLAY_PER_BATCH, allHotels.length);
-
-    for (let i = currentlyDisplayedHotelsCount; i < batchEndIndex; i++) {
-      renderHotelItem(allHotels[i]);
-    }
-    currentlyDisplayedHotelsCount = batchEndIndex;
-
-    if (currentlyDisplayedHotelsCount >= allHotels.length) {
-      loadMoreBtn.style.display = 'none'; // Hide button if all hotels are shown
-    } else {
-      loadMoreBtn.style.display = 'block';
-    }
-  }
 
   function toggleView(section) {
     const poiList = document.getElementById('poi-list');
@@ -187,8 +173,58 @@
     });
 
     toggleView('poi'); // Set initial view to POIs
+
+    // Load itinerary if modifying an existing trip
+    if (typeof tripId !== 'undefined' && tripId) {
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                loadItineraryFromFirestore(tripId);
+            }
+        });
+    }
     {% endif %}
   });
+
+  async function loadItineraryFromFirestore(tripId) {
+    if (!tripId || !firebase.auth().currentUser) return;
+
+    const doc = await firebase.firestore().collection('trips').doc(tripId).get();
+    if (!doc.exists) return;
+
+    const trip = doc.data();
+    if (!trip.itinerary) return;
+
+    // Set start and end dates from Firestore
+    startDate = new Date(trip.startDate.toDate ? trip.startDate.toDate() : trip.startDate);
+    endDate = new Date(trip.endDate.toDate ? trip.endDate.toDate() : trip.endDate);
+
+    initializeItinerary(); // Rebuild the days
+
+    // Populate itinerary items
+    Object.entries(trip.itinerary).forEach(([date, items]) => {
+        const dayContainer = document.querySelector(`.itinerary-items[data-date="${date}"]`);
+        if (dayContainer) {
+            // Remove empty message
+            const emptyMsg = dayContainer.querySelector('.empty-day-message');
+            if (emptyMsg) emptyMsg.remove();
+
+            items.forEach(item => {
+                const itemDiv = createItineraryItem(
+                    item.type,
+                    item.id,
+                    item.name,
+                    item.categories || '',
+                    item.lat,
+                    item.lon,
+                    item.time || '09:00'
+                );
+                dayContainer.appendChild(itemDiv);
+            });
+        }
+    });
+
+    updateItineraryOrder();
+  }
 
 </script>
 {% endblock %}

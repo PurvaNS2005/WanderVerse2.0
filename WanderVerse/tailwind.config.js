@@ -15,4 +15,8 @@
     require("@tailwindcss/container-queries"),
     require("daisyui"),
   ],
+  daisyui: {
+    themes: ["winter", "night", "synthwave"],
+  },
+  darkMode: ['class', '[data-theme="night"]'],
 }

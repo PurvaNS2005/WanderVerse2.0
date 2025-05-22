@@ -63,28 +63,8 @@
     <!-- Profile Content -->
     <div class="container mx-auto px-4 py-8">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Stats Section -->
+            <!-- Recent Activity -->
             <div class="md:col-span-2 space-y-6">
-                <!-- Stats Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div class="stat-card bg-base-100 rounded-lg shadow-lg p-6">
-                        <div class="stat-title">Trips Planned</div>
-                        <div class="stat-value text-primary">{{ user_data.tripsPlanned|default:"0" }}</div>
-                        <div class="stat-desc">Total trips created</div>
-                    </div>
-                    <div class="stat-card bg-base-100 rounded-lg shadow-lg p-6">
-                        <div class="stat-title">Destinations</div>
-                        <div class="stat-value text-secondary">{{ user_data.destinationsVisited|default:"0" }}</div>
-                        <div class="stat-desc">Places explored</div>
-                    </div>
-                    <div class="stat-card bg-base-100 rounded-lg shadow-lg p-6">
-                        <div class="stat-title">Reviews</div>
-                        <div class="stat-value text-accent">{{ user_data.reviewsCount|default:"0" }}</div>
-                        <div class="stat-desc">Places reviewed</div>
-                    </div>
-                </div>
-
-                <!-- Recent Activity -->
                 <div class="bg-base-100 rounded-lg shadow-lg p-6">
                     <h2 class="text-xl font-bold mb-4">Recent Activity</h2>
                     <div class="space-y-4">
