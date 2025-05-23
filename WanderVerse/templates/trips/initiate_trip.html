@@ -2,280 +2,98 @@
 {% load static %}
 
 {% block content %}
-<style>
-  body, html {
-    height: 100%;
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-
-  .bg-image {
-    /* Replace with your desired image path or URL */
-    background-image: url('https://images.unsplash.com/photo-1503220317375-aaad61436b1b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80');
-    filter: blur(3px) brightness(0.7);
-    -webkit-filter: blur(3px) brightness(0.7);
-    height: 100%;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: cover;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: -1;
-  }
-
-  .form-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh; /* Full viewport height */
-    padding: 20px;
-    position: relative; /* Needed for content to sit above blurred background */
-    z-index: 1;
-  }
-
-  .form-content {
-    background: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
-    padding: 40px 50px;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    width: 100%;
-    max-width: 500px;
-    text-align: center;
-    animation: fadeInScale 0.8s ease-out forwards;
-  }
-
-  @keyframes fadeInScale {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
-
-  .form-title {
-    font-size: 2.5rem;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 1.5rem;
-    letter-spacing: -0.5px;
-  }
-
-  .form-description {
-    font-size: 1.1rem;
-    color: #555;
-    margin-bottom: 2.5rem;
-  }
-
-  .form-input {
-    width: 100%;
-    padding: 15px;
-    margin-bottom: 1.5rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-sizing: border-box;
-    font-size: 1rem;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    color: #333; /* Ensure text is visible for date inputs */
-  }
-
-  .form-input::placeholder {
-    color: #999;
-  }
-
-  /* Specific styling for date inputs to ensure they are not too tall if browser default padding is large */
-  input[type="date"].form-input {
-    padding-top: 14px; /* Adjust as needed */
-    padding-bottom: 14px; /* Adjust as needed */
-    line-height: normal; /* Ensure consistent line height */
-  }
-
-  .form-input:focus {
-    border-color: #007bff; /* Or your primary color */
-    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
-    outline: none;
-  }
-  
-  /* Style Django form errors */
-  .errorlist {
-    list-style-type: none;
-    padding: 0;
-    color: #dc3545; /* Bootstrap danger color */
-    font-size: 0.9em;
-    margin-bottom: 1rem;
-    text-align: left;
-  }
-
-  .errorlist li {
-    padding: 5px;
-    border-left: 3px solid #dc3545;
-    margin-bottom: 5px;
-    background-color: #f8d7da; /* Light red background */
-    border-radius: 4px;
-  }
-
-  .form-field-container {
-    margin-bottom: 1.5rem;
-  }
-
-  .form-label {
-    display: block;
-    text-align: left;
-    font-weight: 500;
-    color: #444;
-    margin-bottom: .5rem;
-  }
-
-  .submit-btn {
-    background-color: #007bff; /* Example primary color */
-    color: white;
-    font-size: 1.1rem;
-    font-weight: 500;
-    padding: 15px 30px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    width: 100%;
-    margin-top: 1rem; /* Add some space above the button */
-  }
-
-  .submit-btn:hover {
-    background-color: #0056b3; /* Darker shade on hover */
-    transform: translateY(-2px);
-  }
-  
-  /* Display messages from Django messages framework */
-  .django-messages {
-    list-style-type: none;
-    padding: 0;
-    margin-bottom: 1.5rem;
-  }
-  .django-messages li {
-    padding: 10px 15px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    font-size: 1rem;
-  }
-  .django-messages li.success {
-    background-color: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
-  }
-  .django-messages li.error {
-    background-color: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
-  }
-  .django-messages li.warning {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
-  }
-  .django-messages li.info {
-    background-color: #d1ecf1;
-    color: #0c5460;
-    border: 1px solid #bee5eb;
-  }
-
-</style>
-
-<div class="bg-image"></div>
-
-<div class="form-container">
-  <div class="form-content">
-    <h1 class="form-title">Where to Next?</h1>
-    <p class="form-description">Enter a city and your travel dates to discover amazing tourist spots and comfortable hotels.</p>
+<div class="relative min-h-screen">
+    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1503220317375-aaad61436b1b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center filter blur-sm brightness-75"></div>
     
-    {% if messages %}
-    <ul class="django-messages">
-        {% for message in messages %}
-        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
-
-    <form method="POST" action="{% url 'create_trip' %}">
-      {% csrf_token %}
-
-      <!-- Comprehensive Form Error Display -->
-      {% if form.errors %}
-        <div class="form-validation-errors" style="text-align: left; margin-bottom: 1rem;">
-          {% if form.non_field_errors %}
-            {{ form.non_field_errors }}
-          {% endif %}
-          {% for field in form %}
-            {% if field.errors %}
-              <div class="field-errors">
-                <strong class="form-label">{{ field.label }}</strong>
-                {{ field.errors }}
-              </div>
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="bg-base-100/90 p-8 md:p-12 rounded-xl shadow-lg w-full max-w-lg text-center animate-[fadeInScale_0.8s_ease-out]">
+            <h1 class="text-4xl font-semibold text-base-content mb-4 tracking-tight">Where to Next?</h1>
+            <p class="text-base-content/70 text-lg mb-8">Enter a city and your travel dates to discover amazing tourist spots and comfortable hotels.</p>
+            
+            {% if messages %}
+            <ul class="space-y-2 mb-6">
+                {% for message in messages %}
+                <li class="p-3 rounded-lg {% if message.tags == 'success' %}bg-success/20 text-success border border-success/30{% elif message.tags == 'error' %}bg-error/20 text-error border border-error/30{% elif message.tags == 'warning' %}bg-warning/20 text-warning border border-warning/30{% else %}bg-info/20 text-info border border-info/30{% endif %}">
+                    {{ message }}
+                </li>
+                {% endfor %}
+            </ul>
             {% endif %}
-          {% endfor %}
+
+            <form method="POST" action="{% url 'create_trip' %}" class="space-y-6">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="text-left space-y-2">
+                    {% if form.non_field_errors %}
+                    <div class="p-3 bg-error/20 text-error border border-error/30 rounded-lg">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+                    {% for field in form %}
+                    {% if field.errors %}
+                    <div class="space-y-1">
+                        <strong class="block text-base-content font-medium">{{ field.label }}</strong>
+                        <div class="p-3 bg-error/20 text-error border border-error/30 rounded-lg">
+                            {{ field.errors }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="space-y-2 text-left">
+                    <label for="{{ form.city.id_for_label }}" class="block text-base-content font-medium">City</label>
+                    {{ form.city }}
+                </div>
+
+                <div class="space-y-2 text-left">
+                    <label for="{{ form.start_date.id_for_label }}" class="block text-base-content font-medium">Start Date</label>
+                    {{ form.start_date }}
+                </div>
+
+                <div class="space-y-2 text-left">
+                    <label for="{{ form.end_date.id_for_label }}" class="block text-base-content font-medium">End Date</label>
+                    {{ form.end_date }}
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-full text-lg hover:scale-105 transition-transform duration-200">Let's Go!</button>
+            </form>
         </div>
-      {% endif %}
-      
-      <div class="form-field-container">
-        <label for="{{ form.city.id_for_label }}" class="form-label">City</label>
-        {{ form.city }}
-      </div>
-
-      <div class="form-field-container">
-        <label for="{{ form.start_date.id_for_label }}" class="form-label">Start Date</label>
-        {{ form.start_date }}
-      </div>
-
-      <div class="form-field-container">
-        <label for="{{ form.end_date.id_for_label }}" class="form-label">End Date</label>
-        {{ form.end_date }}
-      </div>
-      
-      <button type="submit" class="submit-btn">Let's Go!</button>
-    </form>
-  </div>
+    </div>
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
     const cityInput = document.getElementById('{{ form.city.id_for_label }}');
     if (cityInput) {
-      cityInput.classList.add('form-input');
-      cityInput.placeholder = 'E.g., Paris, Tokyo, New York';
+        cityInput.classList.add('input', 'input-bordered', 'w-full', 'text-base-content');
+        cityInput.placeholder = 'E.g., Paris, Tokyo, New York';
     }
 
     const startDateInput = document.getElementById('{{ form.start_date.id_for_label }}');
     if (startDateInput) {
-      startDateInput.classList.add('form-input');
-      // Set min date to today
-      const today = new Date().toISOString().split('T')[0];
-      startDateInput.min = today;
+        startDateInput.classList.add('input', 'input-bordered', 'w-full', 'text-base-content');
     }
 
     const endDateInput = document.getElementById('{{ form.end_date.id_for_label }}');
     if (endDateInput) {
-      endDateInput.classList.add('form-input');
+        endDateInput.classList.add('input', 'input-bordered', 'w-full', 'text-base-content');
     }
-
-    // Add validation for end date
-    if (startDateInput && endDateInput) {
-      startDateInput.addEventListener('change', function() {
-        endDateInput.min = this.value;
-        if (endDateInput.value && endDateInput.value < this.value) {
-          endDateInput.value = this.value;
-        }
-      });
-
-      endDateInput.addEventListener('change', function() {
-        if (this.value < startDateInput.value) {
-          alert('End date must be after start date');
-          this.value = startDateInput.value;
-        }
-      });
-    }
-  });
+});
 </script>
+
+<style>
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+</style>
 {% endblock %} 
