@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-base-300 flex items-center justify-center p-4">
+    <form method="POST" action="{% url 'generate_ai_itinerary' city_name=city_name %}" 
+          class="bg-primary p-8 w-full max-w-2xl rounded-xl shadow-lg">
+        {% csrf_token %}    
+        <div class="mb-6">
+            <label for="prompt" class="flex items-center gap-2 text-base-content font-bold mb-2">
+                <i class="fas fa-comment-alt"></i>
+                <span>What kind of itinerary would you like?</span>
+            </label>
+            <div class="bg-base-100 p-4 rounded-xl shadow-sm">
+                <textarea 
+                    class="w-full text-base-content bg-transparent border-2 border-primary rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    id="prompt" 
+                    name="prompt" 
+                    rows="4" 
+                    placeholder="Example: I want a food-focused itinerary with local restaurants and cooking classes. I prefer morning activities and have a medium budget."
+                    required
+                ></textarea>
+            </div>
+            <div class="text-base-content/70 mt-2 flex items-center gap-1">
+                <i class="fas fa-info-circle"></i>
+                Be specific about your interests, preferences, and any special requirements.
+            </div>
+        </div>
+        
+        <div class="mb-6">
+            <label class="flex items-center gap-2 text-base-content font-bold mb-2">
+                <i class="fas fa-walking"></i>
+                <span>Travel Style</span>
+            </label>
+            <div class="bg-base-100 border-2 border-primary rounded-xl p-4">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors duration-200">
+                        <input class="radio radio-primary" type="radio" name="travel_style" id="relaxed" value="relaxed" checked>
+                        <label class="flex items-center gap-2 text-base-content cursor-pointer" for="relaxed">
+                            <i class="fas fa-coffee"></i>
+                            Relaxed (Fewer activities, more free time)
+                        </label>
+                    </div>
+                    <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors duration-200">
+                        <input class="radio radio-primary" type="radio" name="travel_style" id="balanced" value="balanced">
+                        <label class="flex items-center gap-2 text-base-content cursor-pointer" for="balanced">
+                            <i class="fas fa-balance-scale"></i>
+                            Balanced (Mix of activities and free time)
+                        </label>
+                    </div>
+                    <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors duration-200">
+                        <input class="radio radio-primary" type="radio" name="travel_style" id="intensive" value="intensive">
+                        <label class="flex items-center gap-2 text-base-content cursor-pointer" for="intensive">
+                            <i class="fas fa-bolt"></i>
+                            Intensive (Packed schedule, maximize experiences)
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <label class="flex items-center gap-2 text-base-content font-bold mb-2">
+                <i class="fas fa-wallet"></i>
+                <span>Budget Level</span>
+            </label>
+            <div class="bg-base-100 border-2 border-primary rounded-xl p-4">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors duration-200">
+                        <input class="radio radio-primary" type="radio" name="budget" id="budget" value="budget" checked>
+                        <label class="flex items-center gap-2 text-base-content cursor-pointer" for="budget">
+                            <i class="fas fa-piggy-bank"></i>
+                            Budget (Affordable options)
+                        </label>
+                    </div>
+                    <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors duration-200">
+                        <input class="radio radio-primary" type="radio" name="budget" id="medium" value="medium">
+                        <label class="flex items-center gap-2 text-base-content cursor-pointer" for="medium">
+                            <i class="fas fa-coins"></i>
+                            Medium (Mix of affordable and premium)
+                        </label>
+                    </div>
+                    <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors duration-200">
+                        <input class="radio radio-primary" type="radio" name="budget" id="luxury" value="luxury">
+                        <label class="flex items-center gap-2 text-base-content cursor-pointer" for="luxury">
+                            <i class="fas fa-crown"></i>
+                            Luxury (Premium experiences)
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-4">
+            <button type="submit" class="btn btn-lg btn-base-100 hover:scale-105 transition-transform duration-200">
+                <i class="fas fa-magic"></i> Generate AI Itinerary
+            </button>
+            <a href="{% url 'show_trip_results' city_name=city_name %}" class="btn btn-outline btn-base-100 hover:scale-105 transition-transform duration-200">
+                <i class="fas fa-arrow-left"></i> Back to Results
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %} 

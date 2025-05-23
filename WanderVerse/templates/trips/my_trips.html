@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Tabs -->
+    <div class="flex gap-4 mb-8 border-b-2 border-base-300 pb-2">
+        <button class="tab-btn px-6 py-3 text-base font-medium text-base-content/70 hover:text-primary hover:bg-base-200 rounded-lg transition-all duration-200 active" data-tab="upcoming">Upcoming Trips</button>
+        <button class="tab-btn px-6 py-3 text-base font-medium text-base-content/70 hover:text-primary hover:bg-base-200 rounded-lg transition-all duration-200" data-tab="completed">Completed Trips</button>
+        <button class="tab-btn px-6 py-3 text-base font-medium text-base-content/70 hover:text-primary hover:bg-base-200 rounded-lg transition-all duration-200" data-tab="ai">AI Generated Trips</button>
+    </div>
+
+    <!-- Upcoming Trips Section -->
+    <div class="trips-section block" id="upcoming-trips">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="upcoming-trips-grid">
+            <!-- Trips will be loaded here dynamically -->
+        </div>
+    </div>
+
+    <!-- Completed Trips Section -->
+    <div class="trips-section hidden" id="completed-trips">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="completed-trips-grid">
+            <!-- Trips will be loaded here dynamically -->
+        </div>
+    </div>
+
+    <!-- AI Generated Trips Section -->
+    <div class="trips-section hidden" id="ai-trips">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="ai-trips-grid">
+            <!-- AI Generated Trips will be loaded here dynamically -->
+        </div>
+    </div>
+</div>
+
+<script>
+let currentTripToDelete = null;
+
+// Initialize Firebase
+document.addEventListener('DOMContentLoaded', function() {
+    // Check if user is logged in
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            loadTrips();
+        } else {
+            window.location.href = '/login/';
+        }
+    });
+
+    // Tab switching
+    document.querySelectorAll('.tab-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            // Update active tab
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-primary/10', 'text-primary');
+                btn.classList.add('text-base-content/70');
+            });
+            button.classList.add('active', 'bg-primary/10', 'text-primary');
+            button.classList.remove('text-base-content/70');
+
+            // Show corresponding section
+            document.querySelectorAll('.trips-section').forEach(section => section.classList.add('hidden'));
+            document.getElementById(`${button.dataset.tab}-trips`).classList.remove('hidden');
+        });
+    });
+
+    // Modal close buttons
+    document.querySelectorAll('.wv-close-modal').forEach(button => {
+        button.addEventListener('click', () => {
+            document.getElementById('viewItineraryModal').style.display = 'none';
+        });
+    });
+});
+
+function loadTrips() {
+    const userId = firebase.auth().currentUser.uid;
+    const currentDate = new Date();
+
+    // Load regular trips
+    firebase.firestore().collection('trips')
+        .where('userId', '==', userId)
+        .get()
+        .then((querySnapshot) => {
+            const upcomingTrips = [];
+            const completedTrips = [];
+
+            querySnapshot.forEach((doc) => {
+                const trip = doc.data();
+                trip.id = doc.id;
+                const startDate = new Date(trip.startDate.toDate());
+
+                if (startDate >= currentDate) {
+                    upcomingTrips.push(trip);
+                } else {
+                    completedTrips.push(trip);
+                }
+            });
+
+            // Sort trips by start date
+            upcomingTrips.sort((a, b) => new Date(a.startDate.toDate()) - new Date(b.startDate.toDate()));
+            completedTrips.sort((a, b) => new Date(b.startDate.toDate()) - new Date(a.startDate.toDate()));
+
+            renderTrips('upcoming-trips-grid', upcomingTrips);
+            renderTrips('completed-trips-grid', completedTrips);
+        })
+        .catch((error) => {
+            console.error("Error loading trips:", error);
+        });
+
+    // Load AI generated trips
+    firebase.firestore().collection('ai_generated_trips')
+        .where('userId', '==', userId)
+        .get()
+        .then((querySnapshot) => {
+            const aiTrips = [];
+            querySnapshot.forEach((doc) => {
+                const trip = doc.data();
+                trip.id = doc.id;
+                aiTrips.push(trip);
+            });
+
+            // Sort AI trips by creation date
+            aiTrips.sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
+            renderAITrips('ai-trips-grid', aiTrips);
+        })
+        .catch((error) => {
+            console.error("Error loading AI trips:", error);
+        });
+}
+
+function renderTrips(containerId, trips) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+
+    if (trips.length === 0) {
+        container.innerHTML = `
+            <div class="col-span-full text-center p-12 bg-base-200 rounded-xl">
+                <img src="{% static 'images/no-trips.svg' %}" alt="No trips" class="w-48 mx-auto mb-4">
+                <p class="text-base-content/70 text-lg">No trips found</p>
+            </div>
+        `;
+        return;
+    }
+
+    trips.forEach(trip => {
+        const startDate = new Date(trip.startDate.toDate());
+        const endDate = new Date(trip.endDate.toDate());
+        
+        const tripCard = document.createElement('div');
+        tripCard.className = 'bg-base-100 rounded-xl p-6 shadow-lg hover:-translate-y-2 transition-all duration-200';
+        tripCard.innerHTML = `
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-base-content mb-2">${trip.city}</h3>
+                <span class="text-base-content/70 text-sm">${formatDate(startDate)} - ${formatDate(endDate)}</span>
+            </div>
+            <div class="flex flex-col gap-3">
+                ${containerId === 'upcoming-trips-grid' ? `
+                    <button class="btn btn-primary w-full hover:scale-105 transition-transform duration-200" onclick="modifyTrip('${trip.id}')">Modify Itinerary</button>
+                    <button class="btn btn-outline w-full hover:scale-105 transition-transform duration-200" onclick="viewItinerary('${trip.id}')">View Itinerary</button>
+                    <button class="btn btn-error btn-outline w-full hover:scale-105 transition-transform duration-200" onclick="confirmDelete('${trip.id}')">Delete Trip</button>
+                ` : `
+                    <button class="btn btn-outline w-full hover:scale-105 transition-transform duration-200" onclick="viewItinerary('${trip.id}')">View Itinerary</button>
+                `}
+            </div>
+        `;
+        container.appendChild(tripCard);
+    });
+}
+
+function renderAITrips(containerId, trips) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+
+    if (trips.length === 0) {
+        container.innerHTML = `
+            <div class="col-span-full text-center p-12 bg-base-200 rounded-xl">
+                <img src="{% static 'images/no-trips.svg' %}" alt="No AI trips" class="w-48 mx-auto mb-4">
+                <p class="text-base-content/70 text-lg">No trips present</p>
+            </div>
+        `;
+        return;
+    }
+
+    trips.forEach(trip => {
+        const startDate = new Date(trip.startDate.toDate());
+        const endDate = new Date(trip.endDate.toDate());
+        const currentDate = new Date();
+        
+        const tripCard = document.createElement('div');
+        tripCard.className = 'bg-base-100 rounded-xl p-6 shadow-lg hover:-translate-y-2 transition-all duration-200';
+        tripCard.innerHTML = `
+            <div class="mb-6">
+                <h3 class="text-xl font-semibold text-base-content mb-2">${trip.city}</h3>
+                <span class="text-base-content/70 text-sm">${formatDate(startDate)} - ${formatDate(endDate)}</span>
+            </div>
+            <div class="flex flex-col gap-3">
+                <button class="btn btn-outline w-full hover:scale-105 transition-transform duration-200" onclick="viewItinerary('${trip.id}')">View Itinerary</button>
+                ${endDate >= currentDate ? `
+                    <button class="btn btn-error btn-outline w-full hover:scale-105 transition-transform duration-200" onclick="confirmDelete('${trip.id}', true)">Delete Trip</button>
+                ` : ''}
+            </div>
+        `;
+        container.appendChild(tripCard);
+    });
+}
+
+function formatDate(date) {
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
+
+function modifyTrip(tripId) {
+    window.location.href = `/trips/modify/${tripId}/`;
+}
+
+function viewItinerary(tripId) {
+    window.location.href = `/trips/view_itinerary/${tripId}/`;
+}
+
+function confirmDelete(tripId, isAITrip = false) {
+    if (confirm('Are you sure you want to delete this trip? This action cannot be undone.')) {
+        deleteTrip(tripId, isAITrip);
+    }
+}
+
+function deleteTrip(tripId, isAITrip = false) {
+    const collection = isAITrip ? 'ai_generated_trips' : 'trips';
+    firebase.firestore().collection(collection).doc(tripId).delete()
+        .then(() => {
+            console.log('Trip deleted successfully');
+            loadTrips(); // Reload trips after deletion
+        })
+        .catch((error) => {
+            console.error("Error deleting trip:", error);
+        });
+}
+</script>
+{% endblock %} 
