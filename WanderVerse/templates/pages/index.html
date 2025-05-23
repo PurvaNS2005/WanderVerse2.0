@@ -5,20 +5,17 @@
 WanderVerse - Smart Travel Itinerary Planner
 {% endblock %}
 
-{% block style %}
-<link rel="stylesheet" href="{% static 'css/index.css' %}" />
-{% endblock %}
-
 {% block content %}
 <!-- Hero Section -->
-<section class="hero min-h-screen bg-base-200">
-  <div class="hero-content text-center">
+<section class="hero min-h-screen bg-base-200 relative">
+  <div class="absolute inset-0 bg-gradient-to-b from-base-300/50 to-base-300/50 bg-cover bg-center" style="background-image: url('/static/img/hero-bg.jpg');"></div>
+  <div class="hero-content text-center relative z-10">
     <div class="max-w-3xl">
-      <h1 class="text-5xl font-bold mb-4">Welcome, {{ request.session.user_name }}! 👋</h1>
-      <p class="text-xl mb-8">Discover amazing destinations, create personalized itineraries, and make unforgettable memories.</p>
+      <h1 class="text-5xl font-bold mb-4 text-base-content">Welcome, {{ request.session.user_name }}! 👋</h1>
+      <p class="text-xl mb-8 text-base-content">Discover amazing destinations, create personalized itineraries, and make unforgettable memories.</p>
       <div class="flex gap-4 justify-center">
-        <a href="#search" class="btn btn-primary">Start Planning</a>
-        <a href="#how-it-works" class="btn btn-outline">Learn More</a>
+        <a href="#search" class="btn btn-primary hover:scale-105 transition-transform duration-200">Start Planning</a>
+        <a href="#how-it-works" class="btn btn-outline hover:scale-105 transition-transform duration-200">Learn More</a>
       </div>
     </div>
   </div>
@@ -29,34 +26,40 @@ WanderVerse - Smart Travel Itinerary Planner
   <div class="container mx-auto px-4">
     <div class="max-w-4xl mx-auto">
       <h2 class="text-3xl font-bold text-center mb-8">Where do you want to go?</h2>
-      <div class="card bg-base-200 shadow-xl">
+      <div class="card bg-base-200 shadow-xl hover:-translate-y-2 transition-transform duration-300">
         <div class="card-body">
-          <form class="flex flex-col md:flex-row gap-4">
+          <!-- <form class="flex flex-col md:flex-row gap-4">
             <div class="form-control flex-1">
               <label for="destination" class="label">
                 <span class="label-text">Destination</span>
               </label>
-              <input type="text" id="destination" placeholder="Enter destination" class="input input-bordered w-full" />
+              <input type="text" id="destination" placeholder="Enter destination" class="input input-bordered w-full focus:ring-2 focus:ring-primary" />
             </div>
             <div class="form-control flex-1">
               <label for="start-date" class="label">
                 <span class="label-text">Start Date</span>
               </label>
-              <input type="date" id="start-date" class="input input-bordered w-full" />
+              <input type="date" id="start-date" class="input input-bordered w-full focus:ring-2 focus:ring-primary" />
             </div>
             <div class="form-control flex-1">
               <label for="end-date" class="label">
                 <span class="label-text">End Date</span>
               </label>
-              <input type="date" id="end-date" class="input input-bordered w-full" />
+              <input type="date" id="end-date" class="input input-bordered w-full focus:ring-2 focus:ring-primary" />
             </div>
             <div class="form-control flex-1">
               <label class="label invisible">
                 <span class="label-text">Search</span>
               </label>
-              <button type="submit" class="btn btn-primary">Search</button>
+              <div class="flex gap-2">
+                <button type="submit" class="btn btn-primary flex-1 hover:scale-105 transition-transform duration-200">Search</button>
+                <a href="{% url 'create_trip' %}" class="btn btn-secondary flex-1 hover:scale-105 transition-transform duration-200">Make Itinerary</a>
+              </div>
             </div>
-          </form>
+          </form> -->
+          <a href="{% url 'create_trip' %}" class="btn btn-secondary flex-1 text-lg px-6 py-3 hover:scale-105 transition-transform duration-200">
+            Make Itinerary
+          </a>          
         </div>
       </div>
     </div>
@@ -68,21 +71,21 @@ WanderVerse - Smart Travel Itinerary Planner
   <div class="container mx-auto px-4">
     <h2 class="text-3xl font-bold text-center mb-12">How It Works</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div class="card bg-base-100 shadow-xl">
+      <div class="card bg-base-100 shadow-xl hover:-translate-y-2 transition-transform duration-300">
         <div class="card-body">
           <div class="text-4xl mb-4">🎯</div>
           <h3 class="card-title">Choose Your Destination</h3>
           <p>Select from thousands of destinations worldwide and get personalized recommendations.</p>
         </div>
       </div>
-      <div class="card bg-base-100 shadow-xl">
+      <div class="card bg-base-100 shadow-xl hover:-translate-y-2 transition-transform duration-300">
         <div class="card-body">
           <div class="text-4xl mb-4">📅</div>
           <h3 class="card-title">Plan Your Itinerary</h3>
           <p>Create a detailed day-by-day itinerary with our smart planning tools.</p>
         </div>
       </div>
-      <div class="card bg-base-100 shadow-xl">
+      <div class="card bg-base-100 shadow-xl hover:-translate-y-2 transition-transform duration-300">
         <div class="card-body">
           <div class="text-4xl mb-4">✈️</div>
           <h3 class="card-title">Start Your Journey</h3>
@@ -98,43 +101,43 @@ WanderVerse - Smart Travel Itinerary Planner
   <div class="container mx-auto px-4">
     <h2 class="text-3xl font-bold text-center mb-12">Popular Destinations</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="card bg-base-200 shadow-xl">
-        <figure><img src="https://source.unsplash.com/400x300/?paris" alt="Paris" /></figure>
+      <div class="card bg-base-200 shadow-xl hover:-translate-y-2 transition-transform duration-300">
+        <figure><img src="https://source.unsplash.com/400x300/?paris" alt="Paris" class="w-full h-48 object-cover" /></figure>
         <div class="card-body">
           <h3 class="card-title">Paris, France</h3>
           <p>The city of love and lights</p>
           <div class="card-actions justify-end">
-            <button class="btn btn-primary btn-sm">Explore</button>
+            <button class="btn btn-primary btn-sm hover:scale-105 transition-transform duration-200">Explore</button>
           </div>
         </div>
       </div>
-      <div class="card bg-base-200 shadow-xl">
-        <figure><img src="https://source.unsplash.com/400x300/?tokyo" alt="Tokyo" /></figure>
+      <div class="card bg-base-200 shadow-xl hover:-translate-y-2 transition-transform duration-300">
+        <figure><img src="https://source.unsplash.com/400x300/?tokyo" alt="Tokyo" class="w-full h-48 object-cover" /></figure>
         <div class="card-body">
           <h3 class="card-title">Tokyo, Japan</h3>
           <p>Where tradition meets future</p>
           <div class="card-actions justify-end">
-            <button class="btn btn-primary btn-sm">Explore</button>
+            <button class="btn btn-primary btn-sm hover:scale-105 transition-transform duration-200">Explore</button>
           </div>
         </div>
       </div>
-      <div class="card bg-base-200 shadow-xl">
-        <figure><img src="https://source.unsplash.com/400x300/?newyork" alt="New York" /></figure>
+      <div class="card bg-base-200 shadow-xl hover:-translate-y-2 transition-transform duration-300">
+        <figure><img src="https://source.unsplash.com/400x300/?newyork" alt="New York" class="w-full h-48 object-cover" /></figure>
         <div class="card-body">
           <h3 class="card-title">New York, USA</h3>
           <p>The city that never sleeps</p>
           <div class="card-actions justify-end">
-            <button class="btn btn-primary btn-sm">Explore</button>
+            <button class="btn btn-primary btn-sm hover:scale-105 transition-transform duration-200">Explore</button>
           </div>
         </div>
       </div>
-      <div class="card bg-base-200 shadow-xl">
-        <figure><img src="https://source.unsplash.com/400x300/?bali" alt="Bali" /></figure>
+      <div class="card bg-base-200 shadow-xl hover:-translate-y-2 transition-transform duration-300">
+        <figure><img src="https://source.unsplash.com/400x300/?bali" alt="Bali" class="w-full h-48 object-cover" /></figure>
         <div class="card-body">
           <h3 class="card-title">Bali, Indonesia</h3>
           <p>Paradise on Earth</p>
           <div class="card-actions justify-end">
-            <button class="btn btn-primary btn-sm">Explore</button>
+            <button class="btn btn-primary btn-sm hover:scale-105 transition-transform duration-200">Explore</button>
           </div>
         </div>
       </div>
@@ -147,7 +150,7 @@ WanderVerse - Smart Travel Itinerary Planner
   <div class="container mx-auto px-4 text-center">
     <h2 class="text-3xl font-bold mb-8">Ready to Start Your Adventure?</h2>
     <p class="text-xl mb-8">Join thousands of travelers who trust WanderVerse for their journey planning.</p>
-    <a href="#search" class="btn btn-secondary btn-lg">Start Planning Now</a>
+    <a href="#search" class="btn btn-secondary btn-lg hover:scale-105 transition-transform duration-200">Start Planning Now</a>
   </div>
 </section>
 {% endblock %}

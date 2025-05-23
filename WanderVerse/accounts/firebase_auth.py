@@ -133,5 +133,28 @@ class FirebaseAuth:
             logger.error(f"Failed to get Firebase config: {str(e)}")
             return {'FIREBASE_CONFIG': {}}
 
+    @classmethod
+    def log_user_activity(cls, uid, title, description, extra_data=None):
+        """Log a user activity in Firestore under users/{uid}/activities."""
+        if not cls.initialize_firebase():
+            return False
+        try:
+            db = cls.get_db()
+            if not db:
+                return False
+            activity = {
+                'title': title,
+                'description': description,
+                'timestamp': firestore.SERVER_TIMESTAMP
+            }
+            if extra_data and isinstance(extra_data, dict):
+                activity.update(extra_data)
+            activities_ref = db.collection('users').document(uid).collection('activities')
+            activities_ref.add(activity)
+            return True
+        except Exception as e:
+            logger.error(f"Error logging user activity: {str(e)}")
+            return False
+
 # Initialize Firebase when module is imported
 FirebaseAuth.initialize_firebase() 

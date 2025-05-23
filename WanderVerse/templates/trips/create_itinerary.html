@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="flex min-h-screen">
+    <!-- Map Section -->
+    <div class="w-full md:w-2/3">
+        <div id="map" class="h-screen"></div>
+    </div>
+    
+    <!-- Itinerary Creation Section -->
+    <div class="w-full overflow-y-auto bg-base-200 p-6 md:w-1/3">
+        <h2 class="mb-6 text-2xl font-bold text-base-content">Create Itinerary for {{ city_name }}</h2>
+        
+        <!-- Date Range -->
+        <div class="mb-6 overflow-hidden rounded-lg bg-base-100 shadow-lg">
+            <div class="bg-info p-4 text-white">
+                <h3 class="text-xl font-semibold">Trip Dates</h3>
+            </div>
+            <div class="p-4">
+                <p class="flex items-center gap-2 text-base-content/70">
+                    <i class="fas fa-calendar"></i> 
+                    {{ check_in_date }} to {{ check_out_date }}
+                </p>
+            </div>
+        </div>
+
+        <!-- Tourist Spots -->
+        <div class="mb-6 overflow-hidden rounded-lg bg-base-100 shadow-lg">
+            <div class="bg-success p-4 text-white">
+                <h3 class="text-xl font-semibold">Tourist Spots</h3>
+            </div>
+            <div class="p-4">
+                <div class="space-y-2">
+                    {% for poi in pois %}
+                    <div class="group cursor-pointer rounded-lg border border-base-content/10 bg-base-200 p-4 transition-all hover:bg-base-300" 
+                         data-lat="{{ poi.properties.lat }}" 
+                         data-lon="{{ poi.properties.lon }}"
+                         data-name="{{ poi.properties.name }}">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h5 class="font-semibold text-base-content">{{ poi.properties.name }}</h5>
+                                <p class="mt-1 text-sm text-base-content/70">{{ poi.properties.categories|join:", " }}</p>
+                                <small class="mt-1 block text-base-content/50">{{ poi.properties.address }}</small>
+                            </div>
+                            <button class="invisible rounded-lg border border-primary px-3 py-1 text-sm text-primary transition-all group-hover:visible hover:bg-primary hover:text-white">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Hotels -->
+        <div class="mb-6 overflow-hidden rounded-lg bg-base-100 shadow-lg">
+            <div class="bg-primary p-4 text-white">
+                <h3 class="text-xl font-semibold">Hotels</h3>
+            </div>
+            <div class="p-4">
+                <div class="space-y-2">
+                    {% for hotel in hotels %}
+                    <div class="group cursor-pointer rounded-lg border border-base-content/10 bg-base-200 p-4 transition-all hover:bg-base-300"
+                         data-lat="{{ hotel.lat }}"
+                         data-lon="{{ hotel.lon }}"
+                         data-name="{{ hotel.name }}">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h5 class="font-semibold text-base-content">{{ hotel.name }}</h5>
+                                <p class="mt-1 text-sm text-base-content/70">Rating: {{ hotel.rating }} ⭐</p>
+                                <p class="mt-1 text-sm text-base-content/70">Price: {{ hotel.price }}</p>
+                                <small class="mt-1 block text-base-content/50">{{ hotel.address }}</small>
+                            </div>
+                            <button class="invisible rounded-lg border border-primary px-3 py-1 text-sm text-primary transition-all group-hover:visible hover:bg-primary hover:text-white">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Save Button -->
+        <div class="space-y-4">
+            <button id="saveItineraryBtn" class="w-full rounded-lg bg-success px-6 py-3 text-lg font-semibold text-white shadow-lg transition-all hover:bg-success/90 hover:shadow-xl">
+                <i class="fas fa-save"></i> Save Itinerary
+            </button>
+            <a href="{% url 'show_trip_results' city_name=city_name %}" class="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-base-content/20 bg-base-200 px-6 py-3 text-lg font-semibold text-base-content/70 transition-colors hover:bg-base-300">
+                <i class="fas fa-arrow-left"></i> Back to Results
+            </a>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+    // Initialize map
+    const map = L.map('map').setView([
+        parseFloat('{{ city_info.lat }}'),
+        parseFloat('{{ city_info.lon }}')
+    ], 13);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Add markers for POIs
+    {% for poi in pois %}
+    const poiMarker = L.marker([
+        parseFloat('{{ poi.properties.lat }}'),
+        parseFloat('{{ poi.properties.lon }}')
+    ], {
+        icon: L.divIcon({
+            className: 'custom-div-icon',
+            html: '<div class="h-2.5 w-2.5 rounded-full border-2 border-white bg-success"></div>',
+            iconSize: [14, 14],
+            iconAnchor: [7, 7]
+        })
+    }).addTo(map);
+    poiMarker.bindPopup(`<b>${'{{ poi.properties.name|escapejs }}'}</b><br>${'{{ poi.properties.categories|join:", "|escapejs }}'}`);
+    {% endfor %}
+
+    // Add markers for hotels
+    {% for hotel in hotels %}
+    const hotelMarker = L.marker([
+        parseFloat('{{ hotel.lat }}'),
+        parseFloat('{{ hotel.lon }}')
+    ], {
+        icon: L.divIcon({
+            className: 'custom-div-icon',
+            html: '<div class="h-2.5 w-2.5 rounded-full border-2 border-white bg-primary"></div>',
+            iconSize: [14, 14],
+            iconAnchor: [7, 7]
+        })
+    }).addTo(map);
+    hotelMarker.bindPopup(`<b>${'{{ hotel.name|escapejs }}'}</b><br>Rating: ${'{{ hotel.rating }}'} ⭐<br>Price: ${'{{ hotel.price|escapejs }}'}`);
+    {% endfor %}
+
+    // Handle adding items to itinerary
+    document.querySelectorAll('.add-to-itinerary').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const item = this.closest('.poi-item, .hotel-item');
+            const name = item.dataset.name;
+            const lat = item.dataset.lat;
+            const lon = item.dataset.lon;
+            
+            // TODO: Implement adding to itinerary
+            console.log('Adding to itinerary:', { name, lat, lon });
+        });
+    });
+
+    // Handle saving itinerary
+    document.getElementById('saveItineraryBtn').addEventListener('click', function() {
+        // TODO: Implement saving itinerary
+        console.log('Saving itinerary...');
+    });
+</script>
+{% endblock %}
+{% endblock %} 

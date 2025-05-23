@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto my-8 px-4">
+    <div class="bg-base-100 rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-base-300 p-6 flex justify-between items-center">
+            <div class="flex items-center justify-center flex-grow">
+                <h2 class="text-2xl font-bold text-base-content flex items-center gap-2">
+                    <i class="fas fa-map-marked-alt"></i>
+                    Your AI-Generated Itinerary for {{ city_name }}
+                </h2>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="saveAITrip()" class="btn btn-success hover:scale-105 transition-transform duration-200">
+                    <i class="fas fa-save"></i> Save Trip
+                </button>
+                <a href="{% url 'ai_itinerary_form' city_name=city_name %}" class="btn btn-primary hover:scale-105 transition-transform duration-200">
+                    <i class="fas fa-edit"></i> New Itinerary
+                </a>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <div id="itinerary-details" class="space-y-8">
+                {% for day in itinerary.itinerary %}
+                <div class="bg-base-200 rounded-xl p-6">
+                    <h3 class="text-xl font-semibold text-base-content border-b-2 border-base-300 pb-2 mb-4">Day {{ day.day }}</h3>
+                    <ul class="space-y-4">
+                        {% for activity in day.activities %}
+                        <li class="flex gap-4 pl-6 border-l-4 border-primary relative">
+                            <div class="absolute -left-[10px] top-0 w-4 h-4 rounded-full bg-primary border-4 border-base-100"></div>
+                            <span class="font-semibold text-base-content min-w-[100px]">{{ activity.time }}</span>
+                            <div class="flex-1 bg-base-100 p-4 rounded-lg shadow-sm">
+                                <h4 class="font-semibold text-base-content mb-2">{{ activity.title }}</h4>
+                                <p class="text-base-content/70 mb-2">{{ activity.description }}</p>
+                                {% if activity.location %}
+                                <span class="block text-sm text-base-content/70">
+                                    <i class="fas fa-map-marker-alt text-error"></i> {{ activity.location }}
+                                </span>
+                                {% endif %}
+                                {% if activity.estimated_cost %}
+                                <span class="block text-sm text-base-content/70">
+                                    <i class="fas fa-tag text-success"></i> Estimated Cost: {{ activity.estimated_cost }}
+                                </span>
+                                {% endif %}
+                                {% if activity.duration %}
+                                <span class="block text-sm text-base-content/70">
+                                    <i class="fas fa-clock text-base-content/50"></i> Duration: {{ activity.duration }}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+
+                {% if itinerary.total_estimated_cost %}
+                <div class="flex items-center gap-4 bg-success/10 border-2 border-success rounded-xl p-6">
+                    <div class="text-4xl text-success bg-success/20 rounded-full p-3">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-base-content font-semibold">Total Estimated Cost:</span>
+                        <span class="text-2xl font-bold text-error">{{ itinerary.total_estimated_cost }}</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if itinerary.additional_tips %}
+                <div class="bg-warning/10 border-l-4 border-warning rounded-xl p-6">
+                    <div class="flex items-center gap-2 text-xl font-semibold text-base-content mb-4">
+                        <i class="fas fa-lightbulb text-warning"></i> Additional Tips
+                    </div>
+                    <ul class="space-y-2">
+                        {% for tip in itinerary.additional_tips %}
+                        <li class="pl-4 border-l-2 border-warning text-base-content/70">{{ tip }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="bg-base-300 p-6">
+            <div class="flex justify-center">
+                <a href="{% url 'show_trip_results' city_name=city_name %}" class="btn btn-outline hover:scale-105 transition-transform duration-200">
+                    <i class="fas fa-arrow-left"></i> Back to Results
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function saveAITrip() {
+    if (typeof firebase === 'undefined' || !firebase.firestore) {
+        alert('Firebase is not loaded. Please try again later.');
+        console.error('Firebase is not loaded.');
+        return;
+    }
+    const user = firebase.auth().currentUser;
+    if (!user) {
+        alert('You must be logged in to save a trip.');
+        window.location.href = '/login/';
+        return;
+    }
+    const userId = user.uid;
+    console.log('User ID:', userId);
+
+    try {
+        // Get the itinerary data from the page
+        const itinerary = {
+            itinerary: Array.from(document.querySelectorAll('#itinerary-details > div'))
+                .filter(dayDiv => {
+                    const h3 = dayDiv.querySelector('h3');
+                    return h3 && h3.textContent.trim().startsWith('Day');
+                })
+                .map(dayDiv => {
+                    const h3 = dayDiv.querySelector('h3');
+                    const day = parseInt(h3.textContent.split(' ')[1]);
+                    const activities = Array.from(dayDiv.querySelectorAll('li')).map(activity => {
+                        const time = activity.querySelector('span')?.textContent || '';
+                        const title = activity.querySelector('h4')?.textContent || '';
+                        const description = activity.querySelector('p')?.textContent || '';
+                        const location = activity.querySelector('.fa-map-marker-alt')?.parentElement.textContent.trim();
+                        const estimatedCost = activity.querySelector('.fa-tag')?.parentElement.textContent.replace('Estimated Cost:', '').trim();
+                        const duration = activity.querySelector('.fa-clock')?.parentElement.textContent.replace('Duration:', '').trim();
+
+                        return {
+                            time,
+                            title,
+                            description,
+                            ...(location && { location }),
+                            ...(estimatedCost && { estimated_cost: estimatedCost }),
+                            ...(duration && { duration })
+                        };
+                    });
+                    return {
+                        day,
+                        activities
+                    };
+                }),
+            total_estimated_cost: document.querySelector('.text-2xl.font-bold.text-error')?.textContent,
+            additional_tips: Array.from(document.querySelectorAll('.border-warning.text-base-content\\/70')).map(tip => tip.textContent)
+        };
+        console.log('Extracted itinerary:', itinerary);
+
+        // Get the city name from the page
+        const cityName = '{{ city_name }}';
+        // Get start and end dates from the itinerary
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setDate(startDate.getDate() + (itinerary.itinerary.length ? itinerary.itinerary.length - 1 : 0));
+
+        // Save to Firestore
+        firebase.firestore().collection('ai_generated_trips').add({
+            userId,
+            city: cityName,
+            startDate: startDate,
+            endDate: endDate,
+            itinerary: itinerary,
+            isAIGenerated: true,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        })
+        .then(() => {
+            alert('Trip saved successfully!');
+            window.location.href = '/trips/my_trips/';
+        })
+        .catch((error) => {
+            console.error("Error saving trip:", error);
+            alert('Error saving trip. Please try again.');
+        });
+    } catch (err) {
+        console.error('Error extracting itinerary or saving:', err);
+        alert('Error extracting itinerary or saving. See console for details.');
+    }
+}
+</script>
+{% endblock %}
