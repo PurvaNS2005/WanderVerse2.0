@@ -2,13 +2,13 @@
 
 <button
     id="darkModeToggle"
-    class="fixed bottom-6 right-6 p-3 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 shadow-lg z-50"
+    class="fixed bottom-6 right-6 p-3 rounded-full bg-base-200 hover:bg-base-300 dark:bg-base-300 dark:hover:bg-base-400 transition-all duration-200 shadow-lg z-50 hover:scale-110"
     aria-label="Toggle dark mode"
     onclick="toggleDarkMode()"
 >
     <!-- Sun icon for light mode -->
     <svg
-        class="w-6 h-6 text-gray-800 dark:hidden"
+        class="w-6 h-6 text-base-content dark:hidden"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -23,7 +23,7 @@
     </svg>
     <!-- Moon icon for dark mode -->
     <svg
-        class="w-6 h-6 text-yellow-300 hidden dark:block"
+        class="w-6 h-6 text-primary hidden dark:block"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"

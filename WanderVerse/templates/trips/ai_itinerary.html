@@ -2,199 +2,103 @@
 {% load static %}
 
 {% block content %}
-<div class="ai-itinerary-bg d-flex align-items-center justify-content-center" style="min-height: 100vh; background: #070a24;">
+<div class="min-h-screen bg-base-300 flex items-center justify-center p-4">
+    <form method="POST" action="{% url 'generate_ai_itinerary' city_name=city_name %}" 
+          class="bg-primary p-8 w-full max-w-2xl rounded-xl shadow-lg">
+        {% csrf_token %}    
+        <div class="mb-6">
+            <label for="prompt" class="flex items-center gap-2 text-base-content font-bold mb-2">
+                <i class="fas fa-comment-alt"></i>
+                <span>What kind of itinerary would you like?</span>
+            </label>
+            <div class="bg-base-100 p-4 rounded-xl shadow-sm">
+                <textarea 
+                    class="w-full text-base-content bg-transparent border-2 border-primary rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    id="prompt" 
+                    name="prompt" 
+                    rows="4" 
+                    placeholder="Example: I want a food-focused itinerary with local restaurants and cooking classes. I prefer morning activities and have a medium budget."
+                    required
+                ></textarea>
+            </div>
+            <div class="text-base-content/70 mt-2 flex items-center gap-1">
+                <i class="fas fa-info-circle"></i>
+                Be specific about your interests, preferences, and any special requirements.
+            </div>
+        </div>
         
-        <form method="POST" action="{% url 'generate_ai_itinerary' city_name=city_name %}" 
-                style="
-                background-color: #0f76e4; 
-                padding: 2rem; 
-                width: 100%; 
-                max-width: 800px; 
-                margin: 2rem auto; 
-                border-radius: 1rem; 
-                box-shadow: 0 8px 24px rgba(23, 7, 97, 0.15);
-                ">
-                {% csrf_token %}    
-                <div class="mb-4">
-                    <label for="prompt" class="form-label fw-bold text-dark d-flex align-items-center mb-2">
-                        <i class="fas fa-comment-alt me-2"></i>
-                        <span style="color: #212529;">What kind of itinerary would you like?</span>
-                    </label>
-                    <div class="prompt-box p-3 mb-2 bg-white shadow-sm rounded-4">
-                        <textarea 
-                            class="form-control border-primary text-dark prompt-textarea" 
-                            id="prompt" 
-                            name="prompt" 
-                            rows="4" 
-                            placeholder="Example: I want a food-focused itinerary with local restaurants and cooking classes. I prefer morning activities and have a medium budget."
-                            required
-                            style="width: 100%; color: #212529; background-color: #fff; border-radius: 12px; box-shadow: none; border-width: 2px;"
-                        ></textarea>
+        <div class="mb-6">
+            <label class="flex items-center gap-2 text-base-content font-bold mb-2">
+                <i class="fas fa-walking"></i>
+                <span>Travel Style</span>
+            </label>
+            <div class="bg-base-100 border-2 border-primary rounded-xl p-4">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors duration-200">
+                        <input class="radio radio-primary" type="radio" name="travel_style" id="relaxed" value="relaxed" checked>
+                        <label class="flex items-center gap-2 text-base-content cursor-pointer" for="relaxed">
+                            <i class="fas fa-coffee"></i>
+                            Relaxed (Fewer activities, more free time)
+                        </label>
                     </div>
-                    <div class="form-text text-dark mt-2" style="color: #212529 !important;">
-                        <i class="fas fa-info-circle me-1"></i>
-                        Be specific about your interests, preferences, and any special requirements.
+                    <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors duration-200">
+                        <input class="radio radio-primary" type="radio" name="travel_style" id="balanced" value="balanced">
+                        <label class="flex items-center gap-2 text-base-content cursor-pointer" for="balanced">
+                            <i class="fas fa-balance-scale"></i>
+                            Balanced (Mix of activities and free time)
+                        </label>
+                    </div>
+                    <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors duration-200">
+                        <input class="radio radio-primary" type="radio" name="travel_style" id="intensive" value="intensive">
+                        <label class="flex items-center gap-2 text-base-content cursor-pointer" for="intensive">
+                            <i class="fas fa-bolt"></i>
+                            Intensive (Packed schedule, maximize experiences)
+                        </label>
                     </div>
                 </div>
-                
-                <div class="mb-4">
-                    <label class="form-label fw-bold text-dark">
-                        <i class="fas fa-walking me-2"></i>
-                        <span style="color: #212529;">Travel Style</span>
-                    </label>
-                    <div class="card bg-white border-primary">
-                        <div class="card-body">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="travel_style" id="relaxed" value="relaxed" checked>
-                                <label class="form-check-label text-dark" for="relaxed" style="color: #212529;">
-                                    <i class="fas fa-coffee me-2"></i>
-                                    Relaxed (Fewer activities, more free time)
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="travel_style" id="balanced" value="balanced">
-                                <label class="form-check-label text-dark" for="balanced" style="color: #212529;">
-                                    <i class="fas fa-balance-scale me-2"></i>
-                                    Balanced (Mix of activities and free time)
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="travel_style" id="intensive" value="intensive">
-                                <label class="form-check-label text-dark" for="intensive" style="color: #212529;">
-                                    <i class="fas fa-bolt me-2"></i>
-                                    Intensive (Packed schedule, maximize experiences)
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            </div>
+        </div>
 
-                <div class="mb-4">
-                    <label class="form-label fw-bold text-dark">
-                        <i class="fas fa-wallet me-2"></i>
-                        <span style="color: #212529;">Budget Level</span>
-                    </label>
-                    <div class="card bg-white border-primary">
-                        <div class="card-body">
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="budget" id="budget" value="budget" checked>
-                                <label class="form-check-label text-dark" for="budget" style="color: #212529;">
-                                    <i class="fas fa-piggy-bank me-2"></i>
-                                    Budget (Affordable options)
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="budget" id="medium" value="medium">
-                                <label class="form-check-label text-dark" for="medium" style="color: #212529;">
-                                    <i class="fas fa-coins me-2"></i>
-                                    Medium (Mix of affordable and premium)
-                                </label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="radio" name="budget" id="luxury" value="luxury">
-                                <label class="form-check-label text-dark" for="luxury" style="color: #212529;">
-                                    <i class="fas fa-crown me-2"></i>
-                                    Luxury (Premium experiences)
-                                </label>
-                            </div>
-                        </div>
+        <div class="mb-6">
+            <label class="flex items-center gap-2 text-base-content font-bold mb-2">
+                <i class="fas fa-wallet"></i>
+                <span>Budget Level</span>
+            </label>
+            <div class="bg-base-100 border-2 border-primary rounded-xl p-4">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors duration-200">
+                        <input class="radio radio-primary" type="radio" name="budget" id="budget" value="budget" checked>
+                        <label class="flex items-center gap-2 text-base-content cursor-pointer" for="budget">
+                            <i class="fas fa-piggy-bank"></i>
+                            Budget (Affordable options)
+                        </label>
+                    </div>
+                    <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors duration-200">
+                        <input class="radio radio-primary" type="radio" name="budget" id="medium" value="medium">
+                        <label class="flex items-center gap-2 text-base-content cursor-pointer" for="medium">
+                            <i class="fas fa-coins"></i>
+                            Medium (Mix of affordable and premium)
+                        </label>
+                    </div>
+                    <div class="flex items-center gap-2 p-2 rounded-lg hover:bg-base-200 transition-colors duration-200">
+                        <input class="radio radio-primary" type="radio" name="budget" id="luxury" value="luxury">
+                        <label class="flex items-center gap-2 text-base-content cursor-pointer" for="luxury">
+                            <i class="fas fa-crown"></i>
+                            Luxury (Premium experiences)
+                        </label>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary btn-lg">
-                        <i class="fas fa-magic me-2"></i> Generate AI Itinerary
-                    </button>
-                    <a href="{% url 'show_trip_results' city_name=city_name %}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i> Back to Results
-                    </a>
-                </div>
-            </form>
+        <div class="flex flex-col gap-4">
+            <button type="submit" class="btn btn-lg btn-base-100 hover:scale-105 transition-transform duration-200">
+                <i class="fas fa-magic"></i> Generate AI Itinerary
+            </button>
+            <a href="{% url 'show_trip_results' city_name=city_name %}" class="btn btn-outline btn-base-100 hover:scale-105 transition-transform duration-200">
+                <i class="fas fa-arrow-left"></i> Back to Results
+            </a>
+        </div>
+    </form>
 </div>
-
-<style>
-.ai-itinerary-bg {
-    min-height: 100vh;
-    background: #f8f9fa;
-}
-.card {
-    border-radius: 15px;
-    overflow: hidden;
-}
-.card-header {
-    padding: 1.5rem;
-}
-.card-body {
-    padding: 2rem;
-}
-.prompt-box {
-    background: #fff;
-    border: 2px solid #3c6db822;
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(13, 110, 253, 0.07);
-    transition: box-shadow 0.2s;
-}
-.prompt-box:focus-within {
-    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
-    border-color: #0d6efd;
-}
-.prompt-textarea {
-    border: none;
-    outline: none;
-    box-shadow: none;
-    background: transparent;
-    font-size: 1.1rem;
-    padding: 0;
-    min-height: 100px;
-    resize: vertical;
-}
-textarea::placeholder {
-    color: #6c757d !important;
-    opacity: 1;
-}
-.form-label {
-    font-size: 1.2rem;
-    margin-bottom: 1rem;
-    color: #212529 !important;
-}
-.form-check {
-    margin-bottom: 1rem;
-    padding: 0.5rem;
-    border-radius: 8px;
-    transition: background-color 0.2s;
-}
-.form-check:hover {
-    background-color: #f8f9fa;
-}
-.form-check-input:checked {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-}
-.form-check-label {
-    font-size: 1.1rem;
-    padding-left: 0.5rem;
-    color: #212529 !important;
-}
-.form-text {
-    color: #212529 !important;
-    font-size: 0.95rem;
-    margin-top: 0.5rem;
-}
-.btn-lg {
-    padding: 1rem 2rem;
-    font-size: 1.1rem;
-    border-radius: 10px;
-}
-.border-primary {
-    border-width: 2px !important;
-}
-.bg-light {
-    background-color: #f8f9fa !important;
-}
-.form-check-input {
-    width: 1.2em;
-    height: 1.2em;
-    margin-top: 0.2em;
-}
-</style>
 {% endblock %} 

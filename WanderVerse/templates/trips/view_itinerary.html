@@ -2,12 +2,12 @@
 {% load static %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static '/css/view_itinerary.css' %}">
-
-<div class="itinerary-container">
-    <h2>Trip Itinerary</h2>
-    <div id="itinerary-details">
-        <!-- Itinerary details will be dynamically loaded here -->
+<div class="max-w-4xl mx-auto my-12 px-4">
+    <div class="bg-base-100 rounded-xl shadow-lg p-8">
+        <h2 class="text-3xl font-bold text-center text-primary mb-8">Trip Itinerary</h2>
+        <div id="itinerary-details" class="space-y-8">
+            <!-- Itinerary details will be dynamically loaded here -->
+        </div>
     </div>
 </div>
 
@@ -17,13 +17,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const itineraryDetails = document.getElementById('itinerary-details');
 
     if (Object.keys(itinerary).length === 0) {
-        itineraryDetails.innerHTML = '<p>No itinerary details available.</p>';
+        itineraryDetails.innerHTML = '<p class="text-center text-base-content/70">No itinerary details available.</p>';
         return;
     }
 
     Object.keys(itinerary).sort().forEach(date => {
         const dayDiv = document.createElement('div');
-        dayDiv.className = 'itinerary-day';
+        dayDiv.className = 'bg-base-200 rounded-lg p-6 border-l-4 border-primary';
 
         const formattedDate = new Date(date).toLocaleDateString('en-US', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -37,14 +37,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         dayDiv.innerHTML = `
-            <h3 class="day-header">${formattedDate}</h3>
-            <ul class="day-items">
+            <h3 class="text-2xl font-semibold text-primary mb-4">${formattedDate}</h3>
+            <ul class="space-y-4">
                 ${sortedItems.map(item => `
-                    <li class="itinerary-item">
-                        <span class="item-time">${item.time || '00:00'}</span>
-                        <div class="item-details">
-                            <h4>${item.name}</h4>
-                            <span class="item-type">${item.type === 'poi' ? 'Tourist Spot' : 'Hotel'}</span>
+                    <li class="flex items-center bg-base-100 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
+                        <span class="font-bold text-primary bg-primary/10 px-3 py-1 rounded-lg mr-4">${item.time || '00:00'}</span>
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-base-content">${item.name}</h4>
+                            <span class="text-sm text-base-content/70">${item.type === 'poi' ? 'Tourist Spot' : 'Hotel'}</span>
                         </div>
                     </li>
                 `).join('')}

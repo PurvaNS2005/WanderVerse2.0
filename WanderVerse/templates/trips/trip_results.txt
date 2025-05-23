@@ -57,32 +57,32 @@
   </div>
 </div>
 
-<div class="flex flex-col min-h-screen bg-base-200 pt-6">
+<div class="flex flex-col h-screen bg-gray-50 pt-6">
   {% if city_info %}
   <!-- Results Section -->
   <div class="flex flex-1 px-4 sm:px-6 lg:px-8 pb-8 overflow-hidden">
     <!-- Left Panel -->
-    <div class="w-full md:w-1/3 lg:w-2/5 p-6 bg-base-100 text-base-content rounded-xl shadow-xl overflow-y-auto mr-0 md:mr-4 mb-4 md:mb-0" style="max-height: calc(100vh - 120px);" id="left-panel">
+    <div class="w-full md:w-1/3 lg:w-2/5 p-6 bg-white rounded-lg shadow-xl overflow-y-auto mr-0 md:mr-4 mb-4 md:mb-0" style="max-height: calc(100vh - 120px);" id="left-panel">
       <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-primary">{{ city_info.full_name }}</h2>
+        <h2 class="text-2xl font-semibold text-gray-800">{{ city_info.full_name }}</h2>
         <div>
-          <a href="{% url 'create_trip' %}" class="text-sm text-primary hover:text-primary-focus mr-4">&larr; Plan New Trip</a>
-          <a href="{% url 'ai_itinerary_form' city_name %}" class="text-sm text-secondary hover:text-secondary-focus border border-secondary rounded px-3 py-1">
+          <a href="{% url 'create_trip' %}" class="text-sm text-indigo-600 hover:text-indigo-800 mr-4">&larr; Plan New Trip</a>
+          <a href="{% url 'ai_itinerary_form' city_info.full_name %}" class="text-sm text-purple-600 hover:text-purple-800 border border-purple-600 rounded px-3 py-1">
             Generate AI Itinerary
           </a>
-          <button onclick="openEditDatesModal()" class="btn btn-outline ml-2">Edit Trip Dates</button>
+          <button onclick="openEditDatesModal()" class="custom-modal-btn custom-modal-btn-cancel" style="padding: 0.4rem 1rem; font-size: 0.95em;">Edit Trip Dates</button>
         </div>
       </div>
 
       <!-- Toggle Buttons -->
-      <div class="mb-6 flex border-b border-base-300">
-        <button id="btn-poi" onclick="toggleView('poi')" class="flex-1 py-2 px-4 text-center font-medium text-primary border-b-2 border-primary focus:outline-none tab-button active bg-base-100">
+      <div class="mb-6 flex border-b">
+        <button id="btn-poi" onclick="toggleView('poi')" class="flex-1 py-2 px-4 text-center font-medium text-indigo-600 border-b-2 border-indigo-600 focus:outline-none tab-button active">
           Tourist Spots
         </button>
-        <button id="btn-hotels" onclick="toggleView('hotels')" class="flex-1 py-2 px-4 text-center font-medium text-base-content/70 hover:text-primary focus:outline-none tab-button bg-base-100">
+        <button id="btn-hotels" onclick="toggleView('hotels')" class="flex-1 py-2 px-4 text-center font-medium text-gray-500 hover:text-indigo-500 focus:outline-none tab-button">
           Hotels
         </button>
-        <button id="btn-itinerary" onclick="toggleView('itinerary')" class="flex-1 py-2 px-4 text-center font-medium text-base-content/70 hover:text-primary focus:outline-none tab-button bg-base-100">
+        <button id="btn-itinerary" onclick="toggleView('itinerary')" class="flex-1 py-2 px-4 text-center font-medium text-gray-500 hover:text-indigo-500 focus:outline-none tab-button">
           Itinerary
         </button>
       </div>
@@ -92,7 +92,7 @@
         {% if pois %}
           {% for p in pois %}
             <div id="poi-item-{{ forloop.counter0 }}"
-                 class="poi-list-item bg-base-300 text-base-content border border-base-200 rounded-xl shadow-xl p-5"
+                 class="poi-list-item"
                  data-lat="{{ p.geometry.coordinates.1 }}"
                  data-lon="{{ p.geometry.coordinates.0 }}"
                  data-id="poi-marker-{{ forloop.counter0 }}"
@@ -100,21 +100,21 @@
                  data-categories="{{ p.properties.categories|join:',' }}">
               <div class="flex justify-between items-start">
                 <div>
-                  <h3 class="font-bold text-lg text-primary mb-2">{{ p.properties.name }}</h3>
-                  <div class="flex flex-wrap gap-2">
+                  <h3 class="font-bold text-lg text-gray-800">{{ p.properties.name }}</h3>
+                  <div class="mt-2">
                     {% for category in p.properties.categories %}
-                      <span class="bg-base-200 text-primary font-medium px-3 py-1 rounded-full shadow-sm border border-base-300">{{ category|title }}</span>
+                      <span class="poi-category">{{ category|title }}</span>
                     {% endfor %}
                   </div>
                 </div>
-                <button class="add-to-itinerary-btn btn btn-primary shadow-md" data-type="poi" data-id="{{ forloop.counter0 }}">
+                <button class="add-to-itinerary-btn" data-type="poi" data-id="{{ forloop.counter0 }}">
                   Add to Itinerary
                 </button>
               </div>
             </div>
           {% endfor %}
         {% else %}
-          <p class="text-base-content/60 text-center py-4">No tourist spots found for this location.</p>
+          <p class="text-gray-500 text-center py-4">No tourist spots found for this location.</p>
         {% endif %}
       </div>
 
@@ -124,7 +124,7 @@
             {% if hotels %}
                 {% for hotel in hotels %}
                     <div id="hotel-item-{{ hotel.hotelId }}"
-                         class="hotel-list-item bg-base-300 text-base-content border border-base-200 rounded-xl shadow-xl p-5"
+                         class="hotel-list-item"
                          {% if hotel.geoCode and hotel.geoCode.latitude and hotel.geoCode.longitude %}
                            data-lat="{{ hotel.geoCode.latitude }}"
                            data-lon="{{ hotel.geoCode.longitude }}"
@@ -133,29 +133,29 @@
                          data-name="{{ hotel.name|default:'Hotel Name N/A' }}">
                         <div class="flex justify-between items-start">
                           <div>
-                            <h3 class="font-bold text-lg text-primary mb-2">{{ hotel.name|default:"Hotel Name N/A" }}</h3>
+                            <h3 class="font-bold text-lg text-gray-800">{{ hotel.name|default:"Hotel Name N/A" }}</h3>
                             {% if hotel.rating %}
-                              <span class="hotel-rating bg-base-200 text-primary font-medium px-3 py-1 rounded-full shadow-sm border border-base-300">{{ hotel.rating }}</span>
+                              <span class="hotel-rating">{{ hotel.rating }}</span>
                             {% endif %}
                             {% if hotel.address %}
-                                <p class="text-sm text-base-content/70 mt-2">
+                                <p class="text-sm text-gray-600 mt-2">
                                     {% if hotel.address.lines %}{{ hotel.address.lines|join:", " }}{% endif %}
                                     {% if hotel.address.lines and hotel.address.cityName %}, {% endif %}
                                     {% if hotel.address.cityName %}{{ hotel.address.cityName }}{% endif %}
                                     {% if hotel.address.countryCode %} ({{ hotel.address.countryCode }}){% endif %}
                                 </p>
                             {% else %}
-                                 <p class="text-sm text-base-content/70 mt-2">Address not available.</p>
+                                 <p class="text-sm text-gray-600 mt-2">Address not available.</p>
                             {% endif %}
                           </div>
-                          <button class="add-to-itinerary-btn btn btn-primary shadow-md" data-type="hotel" data-id="{{ hotel.hotelId }}">
+                          <button class="add-to-itinerary-btn" data-type="hotel" data-id="{{ hotel.hotelId }}">
                             Add to Itinerary
                           </button>
                         </div>
                     </div>
                 {% endfor %}
             {% else %}
-                <p class="text-base-content/60 text-center py-4">No hotels found for this location.</p>
+                <p class="text-gray-500 text-center py-4">No hotels found for this location.</p>
             {% endif %}
         </div>
       </div>
@@ -163,8 +163,8 @@
       <!-- Itinerary List -->
       <div id="itinerary-list" class="space-y-4" style="display:none;">
         <div class="flex justify-between items-center mb-4">
-          <h3 class="text-lg font-semibold text-primary">Your Itinerary</h3>
-          <button onclick="saveItinerary()" class="btn btn-success">
+          <h3 class="text-lg font-semibold text-gray-800">Your Itinerary</h3>
+          <button onclick="saveItinerary()" class="save-itinerary-btn">
             Save Itinerary
           </button>
         </div>
@@ -175,16 +175,16 @@
     </div>
 
     <!-- Map Panel -->
-    <div class="w-full md:w-2/3 lg:w-3/5 rounded-xl shadow-xl overflow-hidden bg-base-100" id="map" style="height: calc(100vh - 120px); min-height: 400px;"></div>
+    <div class="w-full md:w-2/3 lg:w-3/5 rounded-lg shadow-xl overflow-hidden" id="map" style="height: calc(100vh - 120px); min-height: 400px;"></div>
   </div>
 
   {% else %}
   <!-- Fallback if city not found -->
-  <div class="flex justify-center items-center h-full bg-base-200">
-    <div class="text-center p-10 bg-base-100 rounded-xl shadow-lg">
-      <h1 class="text-2xl font-bold text-primary mb-4">City Information Not Available</h1>
-      <p class="text-base-content mb-6">We couldn't retrieve details for the city: <strong>{{ city_name_searched|default:'the requested city' }}</strong>.</p>
-      <a href="{% url 'create_trip' %}" class="btn btn-primary">
+  <div class="flex justify-center items-center h-full">
+    <div class="text-center p-10">
+      <h1 class="text-2xl font-semibold text-gray-700 mb-4">City Information Not Available</h1>
+      <p class="text-gray-500 mb-6">We couldn't retrieve details for the city: <strong>{{ city_name_searched|default:"the requested city" }}</strong>.</p>
+      <a href="{% url 'create_trip' %}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-5 rounded-lg">
         Try Another Search
       </a>
     </div>
@@ -202,8 +202,6 @@
 <script id="itinerary-data" type="application/json">{{ itinerary_json|default:"{}" }}</script>
 
 <script>
-const TRIP_ID = "{{ trip_id|default:'' }}";
-
 let map;
 const poiMarkers = {};
 const hotelMarkers = {};
@@ -386,7 +384,7 @@ function initializeItinerary() {
         new Sortable(dayDiv.querySelector('.itinerary-items'), {
             group: 'itinerary',
             animation: 150,
-            ghostClass: 'bg-base-neutral',
+            ghostClass: 'bg-gray-100',
             onAdd: function(evt) {
                 // Remove empty message if present
                 const emptyMsg = evt.to.querySelector('.empty-day-message');
@@ -592,8 +590,7 @@ function updateItineraryOrder() {
             id: item.dataset.id,
             name: item.querySelector('h4').textContent,
             lat: item.dataset.lat,
-            lon: item.dataset.lon,
-            time: item.dataset.time || '09:00'
+            lon: item.dataset.lon
         }));
         if (items.length > 0) {
             itinerary[date] = items;
@@ -617,13 +614,8 @@ async function saveItinerary() {
     };
 
     try {
-        if (typeof TRIP_ID !== 'undefined' && TRIP_ID) {
-            await firebase.firestore().collection('trips').doc(TRIP_ID).set(tripData, { merge: true });
-            alert('Itinerary updated successfully!');
-        } else {
-            await firebase.firestore().collection('trips').add(tripData);
-            alert('Itinerary saved successfully!');
-        }
+        await firebase.firestore().collection('trips').add(tripData);
+        alert('Itinerary saved successfully!');
     } catch (error) {
         console.error('Error saving itinerary:', error);
         alert('Failed to save itinerary. Please try again.');
@@ -650,23 +642,23 @@ function toggleView(view) {
 
     // Reset all buttons
     [btnPoi, btnHotels, btnItinerary].forEach(btn => {
-        btn.classList.remove('text-primary', 'border-primary', 'active');
-        btn.classList.add('text-base-content/70', 'hover:text-primary');
+        btn.classList.remove('text-indigo-600', 'border-indigo-600', 'active');
+        btn.classList.add('text-gray-500', 'hover:text-indigo-500');
     });
 
     // Show selected section and update button
     if (view === 'poi') {
         poiList.style.display = 'block';
-        btnPoi.classList.add('text-primary', 'border-primary', 'active');
-        btnPoi.classList.remove('text-base-content/70', 'hover:text-primary');
+        btnPoi.classList.add('text-indigo-600', 'border-indigo-600', 'active');
+        btnPoi.classList.remove('text-gray-500', 'hover:text-indigo-500');
     } else if (view === 'hotels') {
         hotelList.style.display = 'block';
-        btnHotels.classList.add('text-primary', 'border-primary', 'active');
-        btnHotels.classList.remove('text-base-content/70', 'hover:text-primary');
+        btnHotels.classList.add('text-indigo-600', 'border-indigo-600', 'active');
+        btnHotels.classList.remove('text-gray-500', 'hover:text-indigo-500');
     } else if (view === 'itinerary') {
         itineraryList.style.display = 'block';
-        btnItinerary.classList.add('text-primary', 'border-primary', 'active');
-        btnItinerary.classList.remove('text-base-content/70', 'hover:text-primary');
+        btnItinerary.classList.add('text-indigo-600', 'border-indigo-600', 'active');
+        btnItinerary.classList.remove('text-gray-500', 'hover:text-indigo-500');
     }
 }
 
@@ -709,22 +701,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Only run the following if city_info is present
     var cityInfoPresent = {{ city_info|yesno:'true,false' }};
     if (!cityInfoPresent) return;
-
-    // Add event listener for the Add to Itinerary button in modal
-    const confirmButton = document.querySelector('.custom-modal-btn-confirm');
-    if (confirmButton) {
-        confirmButton.addEventListener('click', confirmAddToItinerary);
-    }
-
-    // Add event listeners for Add to Itinerary buttons on POI and hotel items
-    document.querySelectorAll('.add-to-itinerary-btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.stopPropagation(); // Prevent triggering the parent item's click event
-            const type = this.dataset.type;
-            const id = this.dataset.id;
-            showModal(type, id);
-        });
-    });
 
     const lat = parseFloat('{{ city_info.lat }}');
     const lon = parseFloat('{{ city_info.lon }}');
