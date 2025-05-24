@@ -86,9 +86,17 @@ function loadTrips() {
             querySnapshot.forEach((doc) => {
                 const trip = doc.data();
                 trip.id = doc.id;
-                const startDate = new Date(trip.startDate.toDate());
+                let startDateStr = trip.startDate;
+                let endDateStr = trip.endDate;
 
-                if (startDate >= currentDate) {
+                if (trip.startDate && typeof trip.startDate.toDate === 'function') {
+                    startDateStr = trip.startDate.toDate().toLocaleDateString();
+                }
+                if (trip.endDate && typeof trip.endDate.toDate === 'function') {
+                    endDateStr = trip.endDate.toDate().toLocaleDateString();
+                }
+
+                if (startDateStr >= currentDate) {
                     upcomingTrips.push(trip);
                 } else {
                     completedTrips.push(trip);
@@ -142,15 +150,22 @@ function renderTrips(containerId, trips) {
     }
 
     trips.forEach(trip => {
-        const startDate = new Date(trip.startDate.toDate());
-        const endDate = new Date(trip.endDate.toDate());
-        
+        let startDateStr = trip.startDate;
+        let endDateStr = trip.endDate;
+
+        if (trip.startDate && typeof trip.startDate.toDate === 'function') {
+            startDateStr = trip.startDate.toDate().toLocaleDateString();
+        }
+        if (trip.endDate && typeof trip.endDate.toDate === 'function') {
+            endDateStr = trip.endDate.toDate().toLocaleDateString();
+        }
+
         const tripCard = document.createElement('div');
         tripCard.className = 'bg-base-100 rounded-xl p-6 shadow-lg hover:-translate-y-2 transition-all duration-200';
         tripCard.innerHTML = `
             <div class="mb-6">
                 <h3 class="text-xl font-semibold text-base-content mb-2">${trip.city}</h3>
-                <span class="text-base-content/70 text-sm">${formatDate(startDate)} - ${formatDate(endDate)}</span>
+                <span class="text-base-content/70 text-sm">${startDateStr} - ${endDateStr}</span>
             </div>
             <div class="flex flex-col gap-3">
                 ${containerId === 'upcoming-trips-grid' ? `
@@ -181,8 +196,16 @@ function renderAITrips(containerId, trips) {
     }
 
     trips.forEach(trip => {
-        const startDate = new Date(trip.startDate.toDate());
-        const endDate = new Date(trip.endDate.toDate());
+        let startDateStr = trip.startDate;
+        let endDateStr = trip.endDate;
+
+        if (trip.startDate && typeof trip.startDate.toDate === 'function') {
+            startDateStr = trip.startDate.toDate().toLocaleDateString();
+        }
+        if (trip.endDate && typeof trip.endDate.toDate === 'function') {
+            endDateStr = trip.endDate.toDate().toLocaleDateString();
+        }
+
         const currentDate = new Date();
         
         const tripCard = document.createElement('div');
@@ -190,11 +213,11 @@ function renderAITrips(containerId, trips) {
         tripCard.innerHTML = `
             <div class="mb-6">
                 <h3 class="text-xl font-semibold text-base-content mb-2">${trip.city}</h3>
-                <span class="text-base-content/70 text-sm">${formatDate(startDate)} - ${formatDate(endDate)}</span>
+                <span class="text-base-content/70 text-sm">${startDateStr} - ${endDateStr}</span>
             </div>
             <div class="flex flex-col gap-3">
-                <button class="btn btn-outline w-full hover:scale-105 transition-transform duration-200" onclick="viewItinerary('${trip.id}')">View Itinerary</button>
-                ${endDate >= currentDate ? `
+                <button class="btn btn-outline w-full hover:scale-105 transition-transform duration-200" onclick="viewAIItinerary('${trip.id}')">View Itinerary</button>
+                ${endDateStr >= currentDate ? `
                     <button class="btn btn-error btn-outline w-full hover:scale-105 transition-transform duration-200" onclick="confirmDelete('${trip.id}', true)">Delete Trip</button>
                 ` : ''}
             </div>
@@ -217,6 +240,10 @@ function modifyTrip(tripId) {
 
 function viewItinerary(tripId) {
     window.location.href = `/trips/view_itinerary/${tripId}/`;
+}
+
+function viewAIItinerary(tripId) {
+    window.location.href = `/trips/view_ai_itinerary/${tripId}/`;
 }
 
 function confirmDelete(tripId, isAITrip = false) {

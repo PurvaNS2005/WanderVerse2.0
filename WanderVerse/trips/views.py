@@ -449,3 +449,37 @@ def view_itinerary(request, trip_id):
         logger.error(f"Error viewing itinerary: {str(e)}")
         messages.error(request, 'An error occurred while loading the itinerary')
         return redirect('my_trips')
+
+def view_ai_itinerary(request, trip_id):
+    """Display the itinerary details for a specific AI-generated trip"""
+    if not request.session.get('uid'):
+        messages.warning(request, 'Please sign in to view itineraries')
+        return redirect('/')
+    try:
+        db = firestore.client()
+        ai_trip_ref = db.collection('ai_generated_trips').document(trip_id)
+        ai_trip_doc = ai_trip_ref.get()
+        if not ai_trip_doc.exists:
+            messages.error(request, 'AI-generated trip not found')
+            return redirect('my_trips')
+        trip_data = ai_trip_doc.to_dict()
+        if trip_data['userId'] != request.session['uid']:
+            messages.error(request, 'You do not have permission to view this itinerary')
+            return redirect('my_trips')
+        # Log activity
+        FirebaseAuth.log_user_activity(
+            request.session['uid'],
+            title='Viewed an AI-generated itinerary',
+            description=f"Viewed AI-generated itinerary for trip to {trip_data.get('city', 'Unknown City')} (Trip ID: {trip_id})"
+        )
+        itinerary_json = mark_safe(json.dumps(trip_data.get('itinerary', {})))
+        context = {
+            'itinerary_json': itinerary_json,
+            'trip': trip_data,
+            'is_ai': True
+        }
+        return render(request, 'trips/view_ai_itinerary.html', context)
+    except Exception as e:
+        logger.error(f"Error viewing AI itinerary: {str(e)}")
+        messages.error(request, 'An error occurred while loading the AI itinerary')
+        return redirect('my_trips')

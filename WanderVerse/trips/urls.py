@@ -14,4 +14,5 @@ urlpatterns = [
     path('my-trips/', views.my_trips, name='my_trips'),
     path('modify/<str:trip_id>/', views.modify_trip, name='modify_trip'),
     path('view_itinerary/<str:trip_id>/', views.view_itinerary, name='view_itinerary'),
+    path('view_ai_itinerary/<str:trip_id>/', views.view_ai_itinerary, name='view_ai_itinerary'),
 ]
