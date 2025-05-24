@@ -4424,6 +4424,10 @@ select {
   letter-spacing: -0.025em;
 }
 
+.text-base-100 {
+  color: var(--color-base-100);
+}
+
 .text-base-content {
   color: var(--color-base-content);
 }
@@ -4464,10 +4468,6 @@ select {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
-}
-
-.text-base-100 {
-  color: var(--color-base-100);
 }
 
 .opacity-90 {

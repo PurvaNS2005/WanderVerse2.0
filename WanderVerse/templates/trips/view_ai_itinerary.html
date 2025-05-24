@@ -18,10 +18,13 @@
             <div id="ai-itinerary-details"></div>
         </div>
         <div class="bg-base-300 p-6">
-            <div class="flex justify-center">
+            <div class="flex justify-center gap-4">
                 <a href="{% url 'my_trips' %}" class="btn btn-outline hover:scale-105 transition-transform duration-200">
                     <i class="fas fa-arrow-left"></i> Back to My Trips
                 </a>
+                <button onclick="deleteAIItinerary('{{ trip_id }}')" class="btn btn-error hover:scale-105 transition-transform duration-200">
+                    <i class="fas fa-trash"></i> Delete Itinerary
+                </button>
             </div>
         </div>
     </div>
@@ -29,6 +32,7 @@
 
 <script>
 const itinerary = {{ itinerary_json|safe }};
+const tripId = '{{ trip_id }}';  // Use trip_id from context
 
 function renderAIItinerary(itinerary) {
     const container = document.getElementById('ai-itinerary-details');
@@ -70,6 +74,35 @@ function renderAIItinerary(itinerary) {
         `;
         container.appendChild(dayDiv);
     });
+}
+
+function deleteAIItinerary(tripId) {
+    if (!tripId) {
+        console.error('No trip ID provided');
+        alert('Error: Trip ID is missing');
+        return;
+    }
+
+    if (confirm('Are you sure you want to delete this AI-generated itinerary? This action cannot be undone.')) {
+        // Get the current user
+        const user = firebase.auth().currentUser;
+        if (!user) {
+            alert('Please sign in to delete the itinerary');
+            return;
+        }
+
+        // Delete from Firestore
+        firebase.firestore().collection('ai_generated_trips').doc(tripId).delete()
+            .then(() => {
+                console.log('Itinerary deleted successfully');
+                // Redirect to my trips page after successful deletion
+                window.location.href = "{% url 'my_trips' %}";
+            })
+            .catch((error) => {
+                console.error("Error deleting itinerary:", error);
+                alert('Failed to delete itinerary. Please try again.');
+            });
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {

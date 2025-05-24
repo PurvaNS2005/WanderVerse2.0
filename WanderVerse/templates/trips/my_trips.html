@@ -5,7 +5,7 @@
 <div class="max-w-7xl mx-auto px-4 py-8">
     <!-- Tabs -->
     <div class="flex gap-4 mb-8 border-b-2 border-base-300 pb-2">
-        <button class="tab-btn px-6 py-3 text-base font-medium text-base-content/70 hover:text-primary hover:bg-base-200 rounded-lg transition-all duration-200 active" data-tab="upcoming">Upcoming Trips</button>
+        <button class="tab-btn px-6 py-3 text-base font-medium text-base-content/70 hover:text-primary hover:bg-base-200 rounded-lg transition-all duration-200 active bg-primary/10 text-primary" data-tab="upcoming">Upcoming Trips</button>
         <button class="tab-btn px-6 py-3 text-base font-medium text-base-content/70 hover:text-primary hover:bg-base-200 rounded-lg transition-all duration-200" data-tab="completed">Completed Trips</button>
         <button class="tab-btn px-6 py-3 text-base font-medium text-base-content/70 hover:text-primary hover:bg-base-200 rounded-lg transition-all duration-200" data-tab="ai">AI Generated Trips</button>
     </div>
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function loadTrips() {
     const userId = firebase.auth().currentUser.uid;
-    const currentDate = new Date();
+    const currentDate = new Date().setHours(0, 0, 0, 0); // Set to start of day for accurate comparison
 
     // Load regular trips
     firebase.firestore().collection('trips')
@@ -86,26 +86,43 @@ function loadTrips() {
             querySnapshot.forEach((doc) => {
                 const trip = doc.data();
                 trip.id = doc.id;
-                let startDateStr = trip.startDate;
-                let endDateStr = trip.endDate;
-
-                if (trip.startDate && typeof trip.startDate.toDate === 'function') {
-                    startDateStr = trip.startDate.toDate().toLocaleDateString();
+                
+                // Convert Firestore timestamp to Date object
+                let startDate = trip.startDate;
+                if (startDate && typeof startDate.toDate === 'function') {
+                    startDate = startDate.toDate();
+                } else if (typeof startDate === 'string') {
+                    startDate = new Date(startDate);
                 }
-                if (trip.endDate && typeof trip.endDate.toDate === 'function') {
-                    endDateStr = trip.endDate.toDate().toLocaleDateString();
-                }
+                
+                // Format dates for display
+                let startDateStr = startDate ? startDate.toLocaleDateString() : 'No date';
+                let endDateStr = trip.endDate ? (typeof trip.endDate.toDate === 'function' ? 
+                    trip.endDate.toDate().toLocaleDateString() : 
+                    new Date(trip.endDate).toLocaleDateString()) : 'No date';
 
-                if (startDateStr >= currentDate) {
-                    upcomingTrips.push(trip);
+                // Compare dates for categorization
+                const tripStartDate = startDate ? startDate.setHours(0, 0, 0, 0) : 0;
+                
+                if (tripStartDate >= currentDate) {
+                    upcomingTrips.push({...trip, startDateStr, endDateStr});
                 } else {
-                    completedTrips.push(trip);
+                    completedTrips.push({...trip, startDateStr, endDateStr});
                 }
             });
 
             // Sort trips by start date
-            upcomingTrips.sort((a, b) => new Date(a.startDate.toDate()) - new Date(b.startDate.toDate()));
-            completedTrips.sort((a, b) => new Date(b.startDate.toDate()) - new Date(a.startDate.toDate()));
+            upcomingTrips.sort((a, b) => {
+                const dateA = a.startDate ? a.startDate.toDate() : new Date(0);
+                const dateB = b.startDate ? b.startDate.toDate() : new Date(0);
+                return dateA - dateB;
+            });
+            
+            completedTrips.sort((a, b) => {
+                const dateA = a.startDate ? a.startDate.toDate() : new Date(0);
+                const dateB = b.startDate ? b.startDate.toDate() : new Date(0);
+                return dateB - dateA;
+            });
 
             renderTrips('upcoming-trips-grid', upcomingTrips);
             renderTrips('completed-trips-grid', completedTrips);
@@ -123,7 +140,16 @@ function loadTrips() {
             querySnapshot.forEach((doc) => {
                 const trip = doc.data();
                 trip.id = doc.id;
-                aiTrips.push(trip);
+                
+                // Format dates for display
+                let startDateStr = trip.startDate ? (typeof trip.startDate.toDate === 'function' ? 
+                    trip.startDate.toDate().toLocaleDateString() : 
+                    new Date(trip.startDate).toLocaleDateString()) : 'No date';
+                let endDateStr = trip.endDate ? (typeof trip.endDate.toDate === 'function' ? 
+                    trip.endDate.toDate().toLocaleDateString() : 
+                    new Date(trip.endDate).toLocaleDateString()) : 'No date';
+                
+                aiTrips.push({...trip, startDateStr, endDateStr});
             });
 
             // Sort AI trips by creation date

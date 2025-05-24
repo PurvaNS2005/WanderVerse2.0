@@ -476,6 +476,7 @@ def view_ai_itinerary(request, trip_id):
         context = {
             'itinerary_json': itinerary_json,
             'trip': trip_data,
+            'trip_id': trip_id,
             'is_ai': True
         }
         return render(request, 'trips/view_ai_itinerary.html', context)
