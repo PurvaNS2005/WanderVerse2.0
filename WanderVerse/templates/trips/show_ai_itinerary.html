@@ -154,6 +154,8 @@ function saveAITrip() {
             if (!firstDate) firstDate = date;
             lastDate = date;
         });
+// different from the above
+
 
         const total_estimated_cost = document.querySelector('.text-2xl.font-bold.text-error')?.textContent;
         const additional_tips = Array.from(document.querySelectorAll('.border-warning.text-base-content\\/70')).map(tip => tip.textContent);
