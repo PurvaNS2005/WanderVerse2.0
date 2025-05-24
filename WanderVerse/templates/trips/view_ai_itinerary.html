@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto my-8 px-4">
+    <div class="bg-base-100 rounded-xl shadow-lg overflow-hidden">
+        <div class="bg-primary p-6">
+            <h2 class="text-2xl font-bold text-base-100 flex items-center gap-2">
+                <i class="fas fa-robot"></i>
+                AI-Generated Itinerary for {{ trip.city }}
+            </h2>
+            <div class="text-base-100 mt-2">
+                <span class="font-semibold">Dates:</span>
+                {{ trip.startDate }} - {{ trip.endDate }}
+            </div>
+        </div>
+        <div class="p-6">
+            <div id="ai-itinerary-details"></div>
+        </div>
+        <div class="bg-base-300 p-6">
+            <div class="flex justify-center">
+                <a href="{% url 'my_trips' %}" class="btn btn-outline hover:scale-105 transition-transform duration-200">
+                    <i class="fas fa-arrow-left"></i> Back to My Trips
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const itinerary = {{ itinerary_json|safe }};
+
+function renderAIItinerary(itinerary) {
+    const container = document.getElementById('ai-itinerary-details');
+    container.innerHTML = '';
+
+    if (!itinerary || Object.keys(itinerary).length === 0) {
+        container.innerHTML = '<div class="text-center text-base-content/70">No itinerary found.</div>';
+        return;
+    }
+
+    // Sort dates
+    const dates = Object.keys(itinerary).sort();
+
+    dates.forEach(date => {
+        const activities = itinerary[date];
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'bg-base-200 rounded-xl p-6 mb-6';
+
+        // Format date
+        const formattedDate = new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        dayDiv.innerHTML = `
+            <h3 class="text-xl font-semibold text-base-content border-b-2 border-base-300 pb-2 mb-4">${formattedDate}</h3>
+            <ul class="space-y-4">
+                ${activities.map(activity => `
+                    <li class="flex gap-4 pl-6 border-l-4 border-primary relative">
+                        <div class="absolute -left-[10px] top-0 w-4 h-4 rounded-full bg-primary border-4 border-base-100"></div>
+                        <span class="font-semibold text-base-content min-w-[100px]">${activity.time || ''}</span>
+                        <div class="flex-1 bg-base-100 p-4 rounded-lg shadow-sm">
+                            <h4 class="font-semibold text-base-content mb-2">${activity.title || ''}</h4>
+                            <p class="text-base-content/70 mb-2">${activity.description || ''}</p>
+                            ${activity.location ? `<span class="block text-sm text-base-content/70"><i class="fas fa-map-marker-alt text-error"></i> ${activity.location}</span>` : ''}
+                            ${activity.estimated_cost ? `<span class="block text-sm text-base-content/70"><i class="fas fa-tag text-success"></i> Estimated Cost: ${activity.estimated_cost}</span>` : ''}
+                            ${activity.duration ? `<span class="block text-sm text-base-content/70"><i class="fas fa-clock text-base-content/50"></i> Duration: ${activity.duration}</span>` : ''}
+                        </div>
+                    </li>
+                `).join('')}
+            </ul>
+        `;
+        container.appendChild(dayDiv);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    renderAIItinerary(itinerary);
+});
+</script>
+{% endblock %} 

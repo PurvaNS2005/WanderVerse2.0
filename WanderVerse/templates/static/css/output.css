@@ -4466,6 +4466,10 @@ select {
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
 }
 
+.text-base-100 {
+  color: var(--color-base-100);
+}
+
 .opacity-90 {
   opacity: 0.9;
 }
