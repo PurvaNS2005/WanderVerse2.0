@@ -1,0 +1,34 @@
+services:
+    wanderv:
+      build:
+        context: WanderVerse
+        dockerfile: Dockerfile.dev
+      working_dir: /wanderv
+      command: python manage.py runserver 0.0.0.0:8000
+      restart: always
+      ports:
+        - "8000:8000"
+        - "465:465"
+      networks:
+        - wanderv_network
+      volumes:
+        - ./WanderVerse:/wanderv
+        - ./secrets/firebase-key.json:/secrets/firebase-key.json
+      env_file:
+        - .env
+      environment:
+        - ENVIRONMENT=DEVELOPMENT
+        - EMAIL_PROTOCOL=console
+
+    jstoolchain:
+      build:
+        context: WanderVerse
+        dockerfile: Dockerfile.node
+      working_dir: /opt/app
+      volumes:
+        - ./WanderVerse/templates:/opt/app/templates
+      command: npm run tailwind-dev
+      tty: true
+
+networks:
+  wanderv_network:

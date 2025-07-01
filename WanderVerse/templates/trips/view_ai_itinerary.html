@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto my-8 px-4">
+  <div class="bg-base-100 rounded-xl shadow-lg overflow-hidden">
+    <div class="bg-base-300 p-6 flex justify-center items-center">
+      <h2 class="text-2xl font-bold text-base-content flex items-center gap-2">
+        <i class="fas fa-map-marked-alt"></i>
+        Trip Itinerary for {{ city }}
+      </h2>
+    </div>
+
+    <div class="p-6">
+      <div id="itinerary-details" class="space-y-8">
+        <!-- JS will populate itinerary here -->
+      </div>
+
+      {% if total_cost %}
+      <div class="flex items-center gap-4 bg-success/10 border-2 border-success rounded-xl p-6 mt-8">
+        <div class="text-4xl text-success bg-success/20 rounded-full p-3">
+          <i class="fas fa-wallet"></i>
+        </div>
+        <div class="flex flex-col">
+          <span class="text-base-content font-semibold">Total Estimated Cost:</span>
+          <span class="text-2xl font-bold text-error">{{ total_cost }}</span>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if additional_tips %}
+      <div class="bg-warning/10 border-l-4 border-warning rounded-xl p-6 mt-8">
+        <div class="flex items-center gap-2 text-xl font-semibold text-base-content mb-4">
+          <i class="fas fa-lightbulb text-warning"></i> Additional Tips
+        </div>
+        <ul class="space-y-2">
+          {% for tip in additional_tips %}
+          <li class="pl-4 border-l-2 border-warning text-base-content/70">{{ tip }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+    const itinerary = {{ itinerary_json|safe }};
+    const itineraryDetails = document.getElementById('itinerary-details');
+
+    if (!itinerary.length) {
+        itineraryDetails.innerHTML = '<p class="text-center text-base-content/70">No itinerary details available.</p>';
+        return;
+    }
+
+    itinerary.forEach(day => {
+        const dayDiv = document.createElement('div');
+        dayDiv.className = 'bg-base-200 rounded-xl p-6';
+
+        const formattedDate = new Date(day.date).toLocaleDateString('en-US', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        dayDiv.innerHTML = `
+        <div class="date getter font-semibold text-base-content mb-4">${formattedDate}</div>
+        <ul class="space-y-4">
+            ${day.activities.map(activity => `
+            <li class="flex gap-4 pl-6 border-l-4 border-primary relative">
+                <div class="absolute -left-[10px] top-0 w-4 h-4 rounded-full bg-primary border-4 border-base-100"></div>
+                <span class="font-semibold text-base-content min-w-[100px]">${activity.time || '00:00'}</span>
+                <div class="flex-1 bg-base-100 p-4 rounded-lg shadow-sm">
+                <h4 class="font-semibold text-base-content mb-2">${activity.name || activity.title || 'Untitled'}</h4>
+                <p class="text-base-content/70 mb-2">${activity.description || ''}</p>
+                ${activity.location ? `<span class="block text-sm text-base-content/70"><i class="fas fa-map-marker-alt text-error"></i> ${activity.location}</span>` : ''}
+                ${activity.estimated_cost ? `<span class="block text-sm text-base-content/70"><i class="fas fa-tag text-success"></i> Estimated Cost: ${activity.estimated_cost}</span>` : ''}
+                ${activity.duration ? `<span class="block text-sm text-base-content/70"><i class="fas fa-clock text-base-content/50"></i> Duration: ${activity.duration}</span>` : ''}
+                </div>
+            </li>
+            `).join('')}
+        </ul>
+        `;
+
+        itineraryDetails.appendChild(dayDiv);
+    });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="relative min-h-screen">
+    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1503220317375-aaad61436b1b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1920&q=80')] bg-cover bg-center filter blur-sm brightness-75"></div>
+    
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="bg-base-100/90 p-8 md:p-12 rounded-xl shadow-lg w-full max-w-lg text-center animate-[fadeInScale_0.8s_ease-out]">
+            <h1 class="text-4xl font-semibold text-base-content mb-4 tracking-tight">Where to Next?</h1>
+            <p class="text-base-content/70 text-lg mb-8">Enter a city and your travel dates to discover amazing tourist spots and comfortable hotels.</p>
+            
+            {% if messages %}
+            <ul class="space-y-2 mb-6">
+                {% for message in messages %}
+                <li class="p-3 rounded-lg {% if message.tags == 'success' %}bg-success/20 text-success border border-success/30{% elif message.tags == 'error' %}bg-error/20 text-error border border-error/30{% elif message.tags == 'warning' %}bg-warning/20 text-warning border border-warning/30{% else %}bg-info/20 text-info border border-info/30{% endif %}">
+                    {{ message }}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            <form method="POST" action="{% url 'create_trip' %}" class="space-y-6">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                <div class="text-left space-y-2">
+                    {% if form.non_field_errors %}
+                    <div class="p-3 bg-error/20 text-error border border-error/30 rounded-lg">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+                    {% for field in form %}
+                    {% if field.errors %}
+                    <div class="space-y-1">
+                        <strong class="block text-base-content font-medium">{{ field.label }}</strong>
+                        <div class="p-3 bg-error/20 text-error border border-error/30 rounded-lg">
+                            {{ field.errors }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <div class="space-y-2 text-left">
+                    <label for="{{ form.city.id_for_label }}" class="block text-base-content font-medium">City</label>
+                    {{ form.city }}
+                </div>
+
+                <div class="space-y-2 text-left">
+                    <label for="{{ form.start_date.id_for_label }}" class="block text-base-content font-medium">Start Date</label>
+                    {{ form.start_date }}
+                </div>
+
+                <div class="space-y-2 text-left">
+                    <label for="{{ form.end_date.id_for_label }}" class="block text-base-content font-medium">End Date</label>
+                    {{ form.end_date }}
+                </div>
+                
+                <button type="submit" class="btn btn-primary w-full text-lg hover:scale-105 transition-transform duration-200">Let's Go!</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cityInput = document.getElementById('{{ form.city.id_for_label }}');
+    if (cityInput) {
+        cityInput.classList.add('input', 'input-bordered', 'w-full', 'text-base-content');
+        cityInput.placeholder = 'E.g., Paris, Tokyo, New York';
+    }
+
+    const startDateInput = document.getElementById('{{ form.start_date.id_for_label }}');
+    if (startDateInput) {
+        startDateInput.classList.add('input', 'input-bordered', 'w-full', 'text-base-content');
+    }
+
+    const endDateInput = document.getElementById('{{ form.end_date.id_for_label }}');
+    if (endDateInput) {
+        endDateInput.classList.add('input', 'input-bordered', 'w-full', 'text-base-content');
+    }
+});
+</script>
+
+<style>
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+</style>
+{% endblock %} 

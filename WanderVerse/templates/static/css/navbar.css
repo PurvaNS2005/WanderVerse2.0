@@ -1,0 +1,160 @@
+/* Navbar Container */
+.navbar {
+    @apply fixed top-0 left-0 right-0 z-50;
+    background-color: hsl(var(--b1));
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Logo */
+.logo {
+    @apply h-8 w-auto;
+    transition: transform 0.2s ease;
+}
+
+.logo:hover {
+    transform: scale(1.05);
+}
+
+/* Dark/Light Logo Toggle */
+.dark-logo {
+    display: none;
+}
+
+[data-theme="night"] .dark-logo {
+    display: block;
+}
+
+[data-theme="night"] .light-logo {
+    display: none;
+}
+
+/* Auth Buttons */
+#auth-buttons .btn {
+    @apply transition-all duration-200;
+}
+
+#auth-buttons .btn:hover {
+    @apply transform scale-105;
+}
+
+/* Profile Dropdown */
+#profile-dropdown .avatar {
+    @apply transition-all duration-200;
+}
+
+#profile-dropdown .avatar:hover {
+    @apply transform scale-105;
+}
+
+#user-avatar {
+    @apply transition-all duration-200;
+    border: 2px solid transparent;
+}
+
+#profile-dropdown:hover #user-avatar {
+    border-color: hsl(var(--p));
+}
+
+/* Dropdown Menu */
+.dropdown-content {
+    @apply transition-all duration-200;
+    transform-origin: top right;
+}
+
+.dropdown-content li a {
+    @apply transition-colors duration-200;
+}
+
+.dropdown-content li a:hover {
+    @apply bg-base-200;
+}
+
+/* Mobile Menu */
+@media (max-width: 1024px) {
+    .drawer-side {
+        @apply bg-base-100;
+    }
+
+    .drawer-side .menu {
+        @apply gap-2;
+    }
+
+    .drawer-side .menu li a {
+        @apply py-3 px-4 rounded-lg transition-colors duration-200;
+    }
+
+    .drawer-side .menu li a:hover {
+        @apply bg-base-200;
+    }
+}
+
+/* Animation for dropdown */
+@keyframes dropdownFade {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.dropdown-content {
+    animation: dropdownFade 0.2s ease-out;
+}
+
+/* Active state for menu items */
+.menu li a.active {
+    @apply bg-primary text-primary-content;
+}
+
+/* Hover effects for buttons */
+.btn-ghost:hover {
+    @apply bg-base-200;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    .navbar {
+        @apply px-2;
+    }
+
+    .logo {
+        @apply h-6;
+    }
+
+    #auth-buttons .btn {
+        @apply text-sm px-3;
+    }
+}
+
+/* Dark mode adjustments */
+[data-theme="night"] .navbar {
+    @apply bg-base-300;
+}
+
+[data-theme="night"] .dropdown-content {
+    @apply bg-base-200;
+}
+
+/* Accessibility */
+.btn:focus-visible,
+.avatar:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2;
+}
+
+/* Loading state */
+.btn.loading {
+    @apply cursor-wait opacity-80;
+}
+
+/* Error state */
+.btn.error {
+    @apply bg-error text-error-content;
+}
+
+/* Success state */
+.btn.success {
+    @apply bg-success text-success-content;
+} 
