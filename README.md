@@ -38,8 +38,8 @@ To run WanderVerse locally, follow these steps:
   ```
 #### 2. Clone the Repository
   ```bash
-  git clone https://github.com/CodePokeX/WanderVerse.git
-  cd WanderVerse/
+  git clone https://github.com/PurvaNS2005/WanderVerse2.0.git
+  cd WanderVerse2.0/
   ```
 #### 3. Configure Environment Variables
 - Copy the example environment file:
