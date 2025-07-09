@@ -4745,6 +4745,23 @@ select {
   visibility: visible;
 }
 
+.dark\:block:is([data-theme="night"] *) {
+  display: block;
+}
+
+.dark\:hidden:is([data-theme="night"] *) {
+  display: none;
+}
+
+.dark\:bg-base-300:is([data-theme="night"] *) {
+  background-color: var(--color-base-300);
+}
+
+.dark\:bg-gray-900:is([data-theme="night"] *) {
+  --tw-bg-opacity: 1;
+  background-color: rgb(17 24 39 / var(--tw-bg-opacity, 1));
+}
+
 @media (min-width: 640px) {
   .sm\:px-6 {
     padding-left: 1.5rem;
@@ -4826,24 +4843,5 @@ select {
   .lg\:px-8 {
     padding-left: 2rem;
     padding-right: 2rem;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .dark\:block {
-    display: block;
-  }
-
-  .dark\:hidden {
-    display: none;
-  }
-
-  .dark\:bg-base-300 {
-    background-color: var(--color-base-300);
-  }
-
-  .dark\:bg-gray-900 {
-    --tw-bg-opacity: 1;
-    background-color: rgb(17 24 39 / var(--tw-bg-opacity, 1));
   }
 }

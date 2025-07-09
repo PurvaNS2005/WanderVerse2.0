@@ -215,7 +215,7 @@ def update_profile_picture(request):
         if not file.content_type.startswith('image/'):
             return JsonResponse({'success': False, 'message': 'Invalid file type'}, status=400)
             
-        # Save file to storage
+        # Save file to storage include('pages.urls')),  # Main app URLs
         file_name = f"profile_pictures/{request.session['uid']}/{file.name}"
         path = default_storage.save(file_name, ContentFile(file.read()))
         
